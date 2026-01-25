@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { Task } from "@prisma/client";
 
 export async function checkAndEnforceFailures(userId: string) {
     const today = new Date();
@@ -20,7 +21,7 @@ export async function checkAndEnforceFailures(userId: string) {
         // If a task is ACTIVE and date < today, it's FAILED.
 
         // We only care about tasks with date < today
-        const pastUnfinishedTasks = goal.tasks.filter(t => {
+        const pastUnfinishedTasks = goal.tasks.filter((t: Task) => {
             const taskDate = new Date(t.date);
             taskDate.setHours(0, 0, 0, 0);
             taskDate.setHours(0, 0, 0, 0);
