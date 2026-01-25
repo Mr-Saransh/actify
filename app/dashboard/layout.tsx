@@ -11,6 +11,10 @@ import { prisma } from "@/lib/db";
 import { IdentityCard } from "@/components/identity-card";
 import { MobileNav } from "@/components/mobile-nav";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+
 
 interface NavItemProps {
     href: string;

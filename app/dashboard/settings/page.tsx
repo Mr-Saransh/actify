@@ -1,6 +1,10 @@
 import { UserButton } from "@clerk/nextjs";
 import { getOrCreateUser } from "@/app/actions/user";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+
 export default async function SettingsPage() {
     const user = await getOrCreateUser();
     if (!user) return <div>Authenticating...</div>;

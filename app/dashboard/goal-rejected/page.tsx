@@ -2,6 +2,10 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+
 export default function GoalRejectedPage() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center space-y-6">

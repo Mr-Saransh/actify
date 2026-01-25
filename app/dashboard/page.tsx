@@ -15,6 +15,7 @@ import { SystemRules } from "@/components/system-rules";
 import { RiskForecast } from "@/components/risk-forecast";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function DashboardPage() {
     const user = await getOrCreateUser();
