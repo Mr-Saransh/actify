@@ -9,7 +9,6 @@ export async function getPrisma() {
 
         prisma = new PrismaClient({
             log: ["error"],
-            engineType: "library", // 🔥 Force Node.js library engine for Vercel
         });
     }
 
