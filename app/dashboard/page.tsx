@@ -1,3 +1,6 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/db";
 import { CreateGoalForm } from "@/components/create-goal-form";
@@ -14,8 +17,6 @@ import { GoalIntelligence } from "@/components/goal-intelligence";
 import { SystemRules } from "@/components/system-rules";
 import { RiskForecast } from "@/components/risk-forecast";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 export default async function DashboardPage() {
     const user = await getOrCreateUser();

@@ -3,8 +3,6 @@ import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 
 export default function GoalRejectedPage() {
     return (

@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -7,13 +6,11 @@ import { LayoutDashboard, Target, History, Settings, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db";
 import { IdentityCard } from "@/components/identity-card";
 import { MobileNav } from "@/components/mobile-nav";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
 
 
 interface NavItemProps {
@@ -45,36 +42,7 @@ export default async function DashboardLayout({
     children: React.ReactNode;
 }) {
     const { userId } = await auth();
-    let recentLogs: any[] = [];
-    let userPoints = 0;
-    let activeScore = 0;
 
-    if (userId) {
-        recentLogs = await prisma.proof.findMany({
-            where: { task: { goal: { userId } } },
-            orderBy: { createdAt: 'desc' },
-            take: 3,
-            select: { id: true, reviewStatus: true, createdAt: true }
-        });
-
-        const user = await prisma.user.findUnique({ where: { clerkId: userId }, select: { points: true } });
-        if (user) userPoints = user.points;
-
-        // Calculate Active Score
-        const activeGoal = await prisma.goal.findFirst({
-            where: { userId: userId, status: "ACTIVE" },
-            include: { tasks: true }
-        });
-
-        if (activeGoal) {
-            activeScore = activeGoal.tasks.reduce((acc, t) => {
-                if (t.state === 'ACCEPTED') return acc + 5;
-                if (t.state === 'FAILED') return acc - 3;
-                if (t.state === 'REJECTED') return acc - 2;
-                return acc;
-            }, 0);
-        }
-    }
     return (
         <div className="flex h-screen bg-black text-white font-sans selection:bg-red-500/30">
             {/* Sidebar (Desktop) */}
@@ -110,17 +78,6 @@ export default async function DashboardLayout({
                             label="Execution Log"
                             subtext="Immutable Record"
                         />
-                        {/* Preview Log */}
-                        <div className="px-10 py-2 space-y-2">
-                            {recentLogs.map(log => (
-                                <div key={log.id} className="text-[10px] font-mono text-zinc-600 border-l border-zinc-800 pl-2">
-                                    <span className={log.reviewStatus === 'ACCEPTED' ? "text-green-700" : "text-red-900"}>
-                                        [{log.reviewStatus === 'ACCEPTED' ? 'OK' : 'FAIL'}]
-                                    </span>
-                                    {" "}{new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
-                            ))}
-                        </div>
                     </div>
 
                     <NavItem
@@ -132,8 +89,6 @@ export default async function DashboardLayout({
                 </nav>
 
                 <div className="p-4 bg-black mt-auto">
-                    {userId && await prisma.user.findUnique({ where: { clerkId: userId } }).then(u => u && <IdentityCard user={u} />)}
-
                     <div className="text-[8px] text-zinc-800 font-mono uppercase text-center mt-4">
                         Actify Enforcement Protocol v2.0
                     </div>
@@ -151,19 +106,6 @@ export default async function DashboardLayout({
                     </div>
 
                     <div className="ml-auto flex items-center space-x-8">
-                        {/* Scores Display */}
-                        <div className="hidden md:flex gap-8">
-                            <div className="flex flex-col items-end">
-                                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">Active Score</span>
-                                <span className={`text-sm font-bold font-mono ${activeScore < 0 ? 'text-red-500' : 'text-white'}`}>
-                                    {activeScore > 0 ? '+' : ''}{activeScore}
-                                </span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">Total Score</span>
-                                <span className="text-sm font-bold font-mono text-white">{userPoints}</span>
-                            </div>
-                        </div>
 
                         <UserButton
                             appearance={{

@@ -1,9 +1,8 @@
-import { UserButton } from "@clerk/nextjs";
-import { getOrCreateUser } from "@/app/actions/user";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+import { UserButton } from "@clerk/nextjs";
+import { getOrCreateUser } from "@/app/actions/user";
 
 export default async function SettingsPage() {
     const user = await getOrCreateUser();
