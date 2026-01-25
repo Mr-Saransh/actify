@@ -1,9 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { Task } from "@prisma/client";
 
 export async function checkAndEnforceFailures(userId: string) {
+    const prisma = await getPrisma();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

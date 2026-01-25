@@ -1,25 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+// Lazy-load Prisma to prevent evaluation during Next.js config collection
+import type { PrismaClient } from "@prisma/client";
 
-console.log("🔥 PRISMA CLIENT LOADING - Stack:", new Error().stack?.split('\n').slice(0, 5).join('\n'));
+let prisma: PrismaClient;
 
-const globalForPrisma = globalThis as unknown as {
-    prisma: PrismaClient | undefined;
-};
-
-// Lazy initialization to prevent "adapter required" error in Edge
-export const prisma = globalForPrisma.prisma ?? (() => {
-    console.log("🔥 PRISMA CLIENT INSTANTIATING");
-    const client = new PrismaClient({
-        log: ["error"],
-    });
-
-    if (process.env.NODE_ENV !== "production") {
-        globalForPrisma.prisma = client;
+export async function getPrisma() {
+    if (!prisma) {
+        const { PrismaClient } = await import("@prisma/client");
+        prisma = new PrismaClient();
     }
-
-    return client;
-})();
-
-if (process.env.NODE_ENV !== "production" && !globalForPrisma.prisma) {
-    globalForPrisma.prisma = prisma;
+    return prisma;
 }

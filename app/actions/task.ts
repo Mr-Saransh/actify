@@ -1,11 +1,12 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { calculateEnforcementMetrics } from "@/lib/metrics";
 
 // Check for missed deadlines and enforce penalties
 export async function checkDailyDeadlines(userId: string) {
+    const prisma = await getPrisma();
     const now = new Date();
 
     // Find active tasks with passed deadlines
@@ -69,6 +70,7 @@ export async function proceedToNextTask(goalId: string) {
 
 // Unlock the next pre-generated level
 export async function unlockNextLevel(goalId: string) {
+    const prisma = await getPrisma();
     const goal = await prisma.goal.findUnique({
         where: { id: goalId },
         include: { tasks: { orderBy: { dayIndex: 'asc' }, include: { proof: true } } }
@@ -146,6 +148,7 @@ export async function unlockNextLevel(goalId: string) {
 }
 
 export async function getCurrentLevelTask(goalId: string) {
+    const prisma = await getPrisma();
     // Check goal status first
     const goal = await prisma.goal.findUnique({ where: { id: goalId } });
     if (!goal || goal.status === "COMPLETED") return null;

@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { getOrCreateUser } from "@/app/actions/user";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { CreateGoalForm } from "@/components/create-goal-form";
 import { getCurrentLevelTask, checkDailyDeadlines, proceedToNextTask } from "@/app/actions/task";
 import { TaskView } from "@/components/task-view";
@@ -19,6 +19,7 @@ import { RiskForecast } from "@/components/risk-forecast";
 
 
 export default async function DashboardPage() {
+    const prisma = await getPrisma();
     const user = await getOrCreateUser();
 
     if (!user) {
