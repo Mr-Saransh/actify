@@ -1,11 +1,10 @@
 "use server";
 
 import { currentUser } from "@clerk/nextjs/server";
-import { getPrisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
 
 export async function getOrCreateUser(): Promise<User | null> {
-    const prisma = await getPrisma();
     const clerkUser = await currentUser();
 
     if (!clerkUser) {

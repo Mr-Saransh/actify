@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { getPrisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { unlockNextLevel } from "./task";
 
@@ -11,7 +11,6 @@ const SubmitProofSchema = z.object({
 });
 
 export async function submitProof(taskId: string, formData: FormData) {
-    const prisma = await getPrisma();
     const rawData = {
         explanation: formData.get("explanation"),
         content: formData.get("content"),

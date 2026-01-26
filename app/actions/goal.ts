@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { getPrisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { getOrCreateUser } from "./user";
 import { GoalType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -95,7 +95,6 @@ const SAFETY_BLOCKLIST = [
 ];
 
 export async function createGoal(prevState: CreateGoalState, formData: FormData) {
-    const prisma = await getPrisma();
     const user = await getOrCreateUser();
 
     if (!user) {
@@ -196,7 +195,6 @@ export async function createGoal(prevState: CreateGoalState, formData: FormData)
 }
 
 export async function terminateGoal(goalId: string) {
-    const prisma = await getPrisma();
     const user = await getOrCreateUser();
 
     if (!user) {

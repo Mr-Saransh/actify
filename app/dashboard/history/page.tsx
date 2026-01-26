@@ -2,13 +2,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { getOrCreateUser } from "@/app/actions/user";
-import { getPrisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 export default async function HistoryPage() {
-    const prisma = await getPrisma();
     const user = await getOrCreateUser();
 
     if (!user) {
