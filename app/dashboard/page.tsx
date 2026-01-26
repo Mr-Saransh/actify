@@ -98,10 +98,12 @@ export default async function DashboardPage() {
     const visibleTasks = allTasks.slice(0, visiblePathEnd);
 
     return (
-        <div className="space-y-8 max-w-6xl mx-auto pb-12">
+        <div className="space-y-4 md:space-y-8 max-w-6xl mx-auto pb-6 md:pb-12">
 
-            {/* 0. HEADER CONTEXT */}
-            <GoalIntelligence goal={activeGoal as any} />
+            {/* 0. HEADER CONTEXT - Sticky on mobile for visibility */}
+            <div className="md:static sticky top-0 z-10 bg-black">
+                <GoalIntelligence goal={activeGoal as any} />
+            </div>
 
             {/* 1. TOP SECTION: TODAY'S TASK (DOMINANT) */}
             <section className="w-full animate-in zoom-in-50 duration-500">
@@ -129,30 +131,35 @@ export default async function DashboardPage() {
                 )}
             </section>
 
-            {/* 2. MIDDLE SECTION: PRESSURE GRID */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
+            {/* 2. MIDDLE SECTION: PRESSURE GRID - Mobile optimized */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                {/* Ego / Impact - Hidden on mobile */}
+                <div className="hidden md:block">
                     <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Ego / Impact</h4>
                     <FailurePanel metrics={metrics} />
                 </div>
+
+                {/* Enforcement Data - Always visible (core status) */}
                 <div>
                     <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Enforcement Data</h4>
                     <EnforcementStats metrics={metrics} />
                 </div>
-                <div>
+
+                {/* Risk Forecast - Hidden on mobile */}
+                <div className="hidden md:block">
                     <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Risk Forecast</h4>
                     <RiskForecast metrics={metrics} />
                 </div>
             </section>
 
-            {/* 3. BOTTOM SECTION: LOCKED PATH */}
+            {/* 3. BOTTOM SECTION: LOCKED PATH - Horizontal scroll on mobile */}
             <section>
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                    <h3 className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-widest">
                         Execution Path
                     </h3>
-                    <span className="text-xs text-zinc-600 font-mono">
-                        Steps Locked: {allTasks.length - visibleTasks.length}
+                    <span className="text-[10px] md:text-xs text-zinc-600 font-mono">
+                        Locked: {allTasks.length - visibleTasks.length}
                     </span>
                 </div>
 
@@ -160,7 +167,8 @@ export default async function DashboardPage() {
                     {/* Connecting Line */}
                     <div className="absolute top-1/2 left-0 w-full h-1 bg-zinc-900 -translate-y-1/2 rounded-full" />
 
-                    <div className="flex gap-4 overflow-x-auto pb-4 pt-2 relative z-10 scrollbar-hide">
+                    {/* Mobile: Horizontal scroll, Desktop: Flex wrap */}
+                    <div className="flex gap-3 md:gap-4 overflow-x-auto pb-3 md:pb-4 pt-2 relative z-10 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
                         {visibleTasks.map((task, idx) => {
                             // Is this the very last visible one and it's locked?
                             const isLastVisible = idx === visibleTasks.length - 1;

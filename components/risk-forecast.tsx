@@ -13,13 +13,13 @@ export function RiskForecast({ metrics }: RiskForecastProps) {
     const isCaution = metrics.failureMargin === 'CAUTION';
 
     return (
-        <div className="bg-zinc-950/50 border border-zinc-800 rounded-lg p-4 font-mono text-sm h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-4 text-zinc-400 font-bold uppercase tracking-widest border-b border-zinc-800 pb-2">
-                <Gauge className="h-4 w-4" />
-                <span>Risk Forecast</span>
+        <div className="bg-zinc-950/50 border border-zinc-800 rounded-lg p-3 md:p-4 font-mono text-sm h-full flex flex-col">
+            <div className="flex items-center gap-2 mb-3 md:mb-4 text-zinc-400 font-bold uppercase tracking-widest border-b border-zinc-800 pb-2">
+                <Gauge className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="text-xs md:text-sm">Risk Forecast</span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
                 {/* Status Banner */}
                 <div className={`
                     p-3 rounded border text-center uppercase font-bold tracking-widest text-xs

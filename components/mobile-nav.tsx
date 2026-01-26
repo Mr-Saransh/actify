@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LayoutDashboard, History, Settings, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 interface NavItemProps {
     href: string;
@@ -64,6 +64,8 @@ export function MobileNav() {
                             priority
                         />
                     </div>
+                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                    <SheetDescription className="sr-only">Access ACTIFY system navigation</SheetDescription>
                 </SheetHeader>
                 <div className="flex flex-col">
                     <NavItem

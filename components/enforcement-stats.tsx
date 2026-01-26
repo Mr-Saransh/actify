@@ -10,13 +10,13 @@ export function EnforcementStats({ metrics }: EnforcementStatsProps) {
     const isBehind = metrics.executionSpeed < metrics.requiredSpeed;
 
     return (
-        <div className="bg-zinc-950/50 border border-zinc-800 rounded-lg p-4 font-mono text-sm h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-4 text-primary font-bold uppercase tracking-widest border-b border-zinc-800 pb-2">
-                <Activity className="h-4 w-4" />
-                <span>Enforcement Data</span>
+        <div className="bg-zinc-950/50 border border-zinc-800 rounded-lg p-3 md:p-4 font-mono text-sm h-full flex flex-col">
+            <div className="flex items-center gap-2 mb-3 md:mb-4 text-primary font-bold uppercase tracking-widest border-b border-zinc-800 pb-2">
+                <Activity className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="text-xs md:text-sm">Enforcement Data</span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
                 {/* Speed Comparison */}
                 <div className="grid grid-cols-2 gap-2 text-center bg-zinc-900/50 p-2 rounded">
                     <div>

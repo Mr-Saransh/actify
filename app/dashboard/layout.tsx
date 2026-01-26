@@ -8,6 +8,10 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { auth } from "@clerk/nextjs/server";
 import { IdentityCard } from "@/components/identity-card";
 import { MobileNav } from "@/components/mobile-nav";
+import { ActCurrencyDisplay } from "@/components/act-currency-display";
+import { getOrCreateUser } from "@/app/actions/user";
+import { prisma } from "@/lib/prisma";
+import { calculateEnforcementMetrics } from "@/lib/metrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +45,48 @@ export default async function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { userId } = await auth();
+    const user = await getOrCreateUser();
+
+    // Fetch active goal for metrics
+    let metrics = null;
+    let totalScore = 0;
+
+    if (user) {
+        const activeGoal = await prisma.goal.findFirst({
+            where: {
+                userId: user.id,
+                status: "ACTIVE",
+            },
+            include: {
+                tasks: {
+                    include: { proof: true }
+                }
+            },
+        });
+
+        // Calculate all goals total score
+        const allGoals = await prisma.goal.findMany({
+            where: { userId: user.id },
+            include: {
+                tasks: {
+                    include: { proof: true }
+                }
+            }
+        });
+
+        totalScore = allGoals.reduce((sum, goal) => {
+            return sum + goal.tasks.reduce((acc, t) => {
+                if (t.state === 'ACCEPTED') return acc + 5;
+                if (t.state === 'FAILED') return acc - 3;
+                if (t.state === 'REJECTED') return acc - 2;
+                return acc;
+            }, 0);
+        }, 0);
+
+        if (activeGoal) {
+            metrics = calculateEnforcementMetrics(user, activeGoal as any);
+        }
+    }
 
     return (
         <div className="flex h-screen bg-black text-white font-sans selection:bg-red-500/30">
@@ -105,7 +150,9 @@ export default async function DashboardLayout({
                         <span className="font-bold tracking-tight text-sm md:hidden">ACTIFY</span>
                     </div>
 
-                    <div className="ml-auto flex items-center space-x-8">
+                    <div className="ml-auto flex items-center gap-4 md:gap-8">
+                        {/* ACT Currency Display - Always render to avoid hydration mismatch */}
+                        <ActCurrencyDisplay metrics={metrics} totalScore={totalScore} />
 
                         <UserButton
                             appearance={{
