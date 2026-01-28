@@ -15,8 +15,31 @@ model User {
   clerkId   String   @unique
   email     String   @unique
   level     Int      @default(1) // 1: Inactive, 2: Active, 3: Consistent, 4: Executor, 5: Operator
-  points    Int      @default(0)
+  points    Int      @default(0) // Legacy: Keeping for safety, but migrating to actPoints
   streak    Int      @default(0)
+  
+  // -- Dual-Currency System --
+  actPoints        Int      @default(0) // Reputation (Leaderboard)
+  actCurrency      Int      @default(0) // Spendable (Store)
+
+  // -- Stats --
+  tasksCompleted   Int      @default(0)
+  failures         Int      @default(0)
+  goalsCompleted   Int      @default(0)
+  
+  // -- Daily Tracking (New) --
+  lastCompletionDate  DateTime?  // Last date a task was accepted
+  lastFailureCheck    DateTime?  // Last time we checked for missed days
+  dailyTaskCompleted  Boolean   @default(false) // Has completed task today?
+  
+  // -- Inventory --
+  freezeActCount   Int      @default(0)
+  beyondActCount   Int      @default(0)
+  
+  // -- Profile --
+  name             String?
+  image            String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -59,6 +82,7 @@ model Proof {
   id           String      @id @default(uuid())
   taskId       String      @unique
   content      String // URL or text content
+  imageUrl     String? // Optional Proof Image (Base64/URL)
   explanation  String
   submittedAt  DateTime    @default(now())
   reviewStatus ReviewStatus @default(PENDING)

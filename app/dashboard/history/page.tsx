@@ -3,9 +3,14 @@ export const dynamic = "force-dynamic";
 
 import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+
+type TaskWithProof = Prisma.TaskGetPayload<{
+    include: { proof: true }
+}>;
 
 export default async function HistoryPage() {
     const user = await getOrCreateUser();
@@ -22,7 +27,7 @@ export default async function HistoryPage() {
         },
         orderBy: { updatedAt: 'desc' },
         include: { proof: true }
-    });
+    }) as unknown as TaskWithProof[];
 
     return (
         <div className="space-y-6">

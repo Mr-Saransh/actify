@@ -60,6 +60,7 @@ export function CreateGoalForm() {
                             name="deadline"
                             type="date"
                             required
+                            suppressHydrationWarning
                         />
                         {state.errors?.deadline && (
                             <p className="text-sm text-destructive">{state.errors.deadline.join(", ")}</p>
@@ -75,7 +76,16 @@ export function CreateGoalForm() {
                         />
                     </div>
 
-                    {state.message && (
+                    {state.errors?.validation && (
+                        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg space-y-2">
+                            <div className="font-bold text-destructive text-sm">Goal Validation Failed</div>
+                            {state.errors.validation.map((error, idx) => (
+                                <p key={idx} className="text-sm text-destructive">{error}</p>
+                            ))}
+                        </div>
+                    )}
+
+                    {state.message && !state.errors?.validation && (
                         <div className="p-3 bg-muted text-sm border-l-2 border-primary">
                             {state.message}
                         </div>

@@ -1,22 +1,25 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google"; // Keep Geist
+import { Inter, Space_Grotesk } from "next/font/google"; // Corrected imports
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
+  variable: "--font-space",
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: "ACTIFY",
-  description: "Execution Enforcement Platform",
+  description: "High-Performance Protocol Enforcement",
 };
 
 export default function RootLayout({
@@ -27,16 +30,16 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+        <body className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
+            themes={["dark", "light-focus", "minimal", "beautiful"]}
             enableSystem
             disableTransitionOnChange
           >
             {children}
+            <Toaster />
           </ThemeProvider>
         </body>
       </html>

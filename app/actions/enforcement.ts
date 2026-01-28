@@ -1,17 +1,21 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Task } from "@prisma/client";
+import { Task, Prisma } from "@prisma/client";
+
+type GoalWithTasks = Prisma.GoalGetPayload<{
+    include: { tasks: true }
+}>;
 
 export async function checkAndEnforceFailures(userId: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Find users' active goals
+    // Find users' active goals with tasks included
     const activeGoals = await prisma.goal.findMany({
         where: { userId, status: "ACTIVE" },
         include: { tasks: true }
-    });
+    }) as unknown as GoalWithTasks[];
 
     let failureDetected = false;
 
@@ -21,9 +25,8 @@ export async function checkAndEnforceFailures(userId: string) {
         // If a task is ACTIVE and date < today, it's FAILED.
 
         // We only care about tasks with date < today
-        const pastUnfinishedTasks = goal.tasks.filter((t: Task) => {
+        const pastUnfinishedTasks = goal.tasks.filter((t) => {
             const taskDate = new Date(t.date);
-            taskDate.setHours(0, 0, 0, 0);
             taskDate.setHours(0, 0, 0, 0);
             return taskDate < today && t.state === "ACTIVE";
         });

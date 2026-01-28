@@ -16,9 +16,15 @@ import { EnforcementStats } from "@/components/enforcement-stats";
 import { GoalIntelligence } from "@/components/goal-intelligence";
 import { SystemRules } from "@/components/system-rules";
 import { RiskForecast } from "@/components/risk-forecast";
+import { checkDailyFailure } from "@/app/actions/daily-check";
+import { DailyStatusBadge } from "@/components/daily-status-badge";
+import { PowerUpDisplay } from "@/components/power-up-display";
 
 
 export default async function DashboardPage() {
+    // Check for missed days first
+    await checkDailyFailure();
+
     const user = await getOrCreateUser();
 
     if (!user) {
@@ -57,8 +63,8 @@ export default async function DashboardPage() {
 
     // Identify current active task (or strict sequential enforcement)
     // In Candy Crush mode, we might have multiple active if we allowed branching, but here it's linear.
-    const allTasks = activeGoal.tasks;
-    const activeTask = allTasks.find(t => t.state === "ACTIVE" || t.state === "REJECTED");
+    const allTasks = (activeGoal as any).tasks;
+    const activeTask = allTasks.find((t: any) => t.state === "ACTIVE" || t.state === "REJECTED");
 
     // Calculate Metrics (Early for limit check)
     const metrics = calculateEnforcementMetrics(user, activeGoal as any);
@@ -66,7 +72,7 @@ export default async function DashboardPage() {
     // Calculate limit status first
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
-    const tasksCompletedToday = allTasks.filter(t => t.state === 'ACCEPTED' && t.updatedAt >= startOfDay).length;
+    const tasksCompletedToday = allTasks.filter((t: any) => t.state === 'ACCEPTED' && t.updatedAt >= startOfDay).length;
 
     // Check if daily limit reached (No active task, and limit hit)
     const isDailyLimitReached = !activeTask && activeGoal.status === "ACTIVE" && tasksCompletedToday >= metrics.dailyLimit;
@@ -76,12 +82,13 @@ export default async function DashboardPage() {
     // 2. If not limit reached & goal not done, show the last accepted task (so user can Proceed)
     let currentTask = activeTask;
 
-    if (!currentTask && !isDailyLimitReached && activeGoal.status !== "COMPLETED") {
-        const lastAccepted = [...allTasks].reverse().find(t => t.state === "ACCEPTED");
-        if (lastAccepted) {
-            currentTask = lastAccepted;
-        }
-    }
+    // DISABLED: This causes "PROTOCOL SATISFIED" message at midnight which blocks UI
+    // if (!currentTask && !isDailyLimitReached && activeGoal.status !== "COMPLETED") {
+    //     const lastAccepted = [...allTasks].reverse().find((t: any) => t.state === "ACCEPTED");
+    //     if (lastAccepted) {
+    //         currentTask = lastAccepted;
+    //     }
+    // }
 
     // If no task returned, check goal status
     const isGoalCompleted = activeGoal.status === "COMPLETED";
@@ -89,7 +96,7 @@ export default async function DashboardPage() {
     // Prepare Locked Path (Show only next 3 steps)
     // Find index of current task
     const currentIndex = currentTask ? currentTask.dayIndex - 1 :
-        allTasks.findIndex(t => t.state === 'LOCKED') - 1;
+        allTasks.findIndex((t: any) => t.state === 'LOCKED') - 1;
 
     // Taking a slice: from start to current + 3
     // But we want to visually focus on the future path? 
@@ -101,8 +108,14 @@ export default async function DashboardPage() {
         <div className="space-y-4 md:space-y-8 max-w-6xl mx-auto pb-6 md:pb-12">
 
             {/* 0. HEADER CONTEXT - Sticky on mobile for visibility */}
-            <div className="md:static sticky top-0 z-10 bg-black">
-                <GoalIntelligence goal={activeGoal as any} />
+            <div className="md:static sticky top-0 z-10 bg-background pb-3">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                    <GoalIntelligence goal={activeGoal as any} />
+                    <div className="flex items-center gap-2">
+                        <PowerUpDisplay />
+                        <DailyStatusBadge />
+                    </div>
+                </div>
             </div>
 
             {/* 1. TOP SECTION: TODAY'S TASK (DOMINANT) */}
@@ -111,22 +124,22 @@ export default async function DashboardPage() {
                     <TaskView task={currentTask} />
                 ) : isGoalCompleted ? (
                     // ... (mission accomplished)
-                    <div className="p-12 text-center border-2 border-green-500/20 rounded-lg bg-green-950/20">
+                    <div className="p-12 text-center border-2 border-green-500/20 rounded-lg bg-green-500/10">
                         <h3 className="text-4xl font-black text-green-500 mb-4 uppercase tracking-tighter">Mission Accomplished</h3>
-                        <p className="text-zinc-400 font-mono">Protocol verified. Archive to initialize new sequence.</p>
+                        <p className="text-muted-foreground font-mono">Protocol verified. Archive to initialize new sequence.</p>
                         <div className="mt-8">
                             <TerminateGoalButton goalId={activeGoal.id} />
                         </div>
                     </div>
                 ) : isDailyLimitReached ? (
                     // ... (limit hit)
-                    <div className="p-12 text-center border-2 border-blue-500/20 rounded-lg bg-blue-950/20">
+                    <div className="p-12 text-center border-2 border-blue-500/20 rounded-lg bg-blue-500/10">
                         <h3 className="text-4xl font-black text-blue-500 mb-2 uppercase tracking-tighter">Daily Limit Hit</h3>
-                        <p className="text-zinc-400 font-mono">Capacity Reached ({metrics.dailyLimit}/{metrics.dailyLimit}). Protocol resumes at 00:00.</p>
+                        <p className="text-muted-foreground font-mono">Capacity Reached ({metrics.dailyLimit}/{metrics.dailyLimit}). Protocol resumes at 00:00.</p>
                     </div>
                 ) : (
-                    <div className="p-12 text-center border border-dashed border-zinc-800 rounded-lg">
-                        <p className="text-zinc-500 font-mono">No active directives. Stand by.</p>
+                    <div className="p-12 text-center border border-dashed border-border rounded-lg">
+                        <p className="text-muted-foreground font-mono">No active directives. Stand by.</p>
                     </div>
                 )}
             </section>
@@ -135,19 +148,19 @@ export default async function DashboardPage() {
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {/* Ego / Impact - Hidden on mobile */}
                 <div className="hidden md:block">
-                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Ego / Impact</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Ego / Impact</h4>
                     <FailurePanel metrics={metrics} />
                 </div>
 
                 {/* Enforcement Data - Always visible (core status) */}
                 <div>
-                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Enforcement Data</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Enforcement Data</h4>
                     <EnforcementStats metrics={metrics} />
                 </div>
 
                 {/* Risk Forecast - Hidden on mobile */}
                 <div className="hidden md:block">
-                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Risk Forecast</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Risk Forecast</h4>
                     <RiskForecast metrics={metrics} />
                 </div>
             </section>
@@ -155,42 +168,41 @@ export default async function DashboardPage() {
             {/* 3. BOTTOM SECTION: LOCKED PATH - Horizontal scroll on mobile */}
             <section>
                 <div className="flex items-center justify-between mb-2 md:mb-4">
-                    <h3 className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                    <h3 className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest">
                         Execution Path
                     </h3>
-                    <span className="text-[10px] md:text-xs text-zinc-600 font-mono">
+                    <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
                         Locked: {allTasks.length - visibleTasks.length}
                     </span>
                 </div>
 
-                <div className="relative">
-                    {/* Connecting Line */}
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-zinc-900 -translate-y-1/2 rounded-full" />
+                {/* Task boxes - no connecting line */}
+                <div className="flex gap-3 md:gap-4 overflow-x-auto pb-3 md:pb-4 pt-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                    {(() => {
+                        // Pre-calculate active task index once to avoid hydration issues
+                        const activeTaskIndex = visibleTasks.findIndex((t: any) => t.state === 'ACTIVE' || t.state === 'REJECTED');
 
-                    {/* Mobile: Horizontal scroll, Desktop: Flex wrap */}
-                    <div className="flex gap-3 md:gap-4 overflow-x-auto pb-3 md:pb-4 pt-2 relative z-10 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-                        {visibleTasks.map((task, idx) => {
-                            // Is this the very last visible one and it's locked?
-                            const isLastVisible = idx === visibleTasks.length - 1;
-                            const isBlurred = isLastVisible && task.state === 'LOCKED';
+                        return visibleTasks.map((task: any, idx: number) => {
+                            // Calculate blur for locked tasks after the active one
+                            const isAfterActive = idx > activeTaskIndex && activeTaskIndex !== -1;
+                            const distanceFromActive = isAfterActive ? idx - activeTaskIndex : 0;
+                            const blurAmount = task.state === 'LOCKED' && isAfterActive ? Math.min(distanceFromActive * 3, 12) : 0;
+                            const opacityAmount = task.state === 'LOCKED' && isAfterActive ? Math.max(0.2, 1 - distanceFromActive * 0.2) : 1;
 
                             return (
                                 <div
                                     key={task.id}
                                     className={`
                                         flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-sm flex items-center justify-center font-bold border-2 transition-all
-                                        ${task.state === 'ACCEPTED' ? 'bg-green-950 text-green-500 border-green-900' : ''}
-                                        ${(task.state === 'ACTIVE' || task.state === 'REJECTED') ? 'bg-black text-white border-white scale-125 z-20 shadow-[0_0_20px_rgba(255,255,255,0.2)]' : ''}
-                                        ${task.state === 'LOCKED' ? 'bg-zinc-950 text-zinc-700 border-zinc-900' : ''}
-                                        ${task.state === 'FAILED' ? 'bg-red-950 text-red-800 border-red-900' : ''}
-                                        ${isBlurred ? 'opacity-50 blur-[2px]' : ''}
+                                        ${task.state === 'ACCEPTED' ? 'bg-green-500/10 text-green-500 border-green-500/30' : ''}
+                                        ${(task.state === 'ACTIVE' || task.state === 'REJECTED') ? 'bg-primary text-primary-foreground border-primary scale-125 z-20 shadow-lg' : ''}
+                                        ${task.state === 'LOCKED' ? 'bg-secondary text-muted-foreground border-secondary-foreground/10' : ''}
+                                        ${task.state === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/30' : ''}
                                     `}
+                                    style={blurAmount > 0 ? { filter: `blur(${blurAmount}px)`, opacity: opacityAmount } : {}}
                                 >
                                     {task.state === 'LOCKED' ? (
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-[10px] opacity-50">L{task.dayIndex}</span>
-                                            <span className="text-xs">🔒</span>
-                                        </div>
+                                        <span className="text-lg">🔒</span>
                                     ) : (
                                         <span className={`text-sm md:text-lg ${task.state === 'ACTIVE' ? 'animate-pulse' : ''}`}>
                                             {task.dayIndex}
@@ -198,18 +210,19 @@ export default async function DashboardPage() {
                                     )}
                                 </div>
                             );
-                        })}
+                        });
+                    })()}
 
-                        {allTasks.length > visibleTasks.length && (
-                            <div className="flex-shrink-0 w-12 h-12 md:w-16 md:h-16 flex items-center justify-center bg-zinc-950 border border-zinc-900 opacity-30 blur-sm rounded-sm">
-                                <span className="text-xs">...</span>
-                            </div>
-                        )}
-                    </div>
+                    {allTasks.length > visibleTasks.length && (
+                        <div className="flex-shrink-0 w-12 h-12 md:w-16 md:h-16 flex items-center justify-center bg-secondary border border-border opacity-20 blur-sm rounded-sm">
+                            <span className="text-xs">...</span>
+                        </div>
+                    )}
                 </div>
 
+                {/* Text below */}
                 <div className="text-center mt-2">
-                    <p className="text-xs text-zinc-600 font-mono uppercase">
+                    <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
                         Complete current task to reveal next step
                     </p>
                 </div>

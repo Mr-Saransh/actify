@@ -65,6 +65,16 @@ export function SubmitProofDialog({ taskId }: SubmitProofDialogProps) {
                             />
                         </div>
                         <div className="grid gap-2">
+                            <Label htmlFor="image">Proof Image (Optional)</Label>
+                            <Input
+                                id="image"
+                                name="image"
+                                type="file"
+                                accept="image/*"
+                            />
+                            <p className="text-[10px] text-muted-foreground">Max 2MB. Supports PNG, JPG.</p>
+                        </div>
+                        <div className="grid gap-2">
                             <Label htmlFor="explanation">Explanation</Label>
                             <Textarea
                                 id="explanation"

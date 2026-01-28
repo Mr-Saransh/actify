@@ -2,20 +2,20 @@ import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import Link from "next/link";
-import { LayoutDashboard, Target, History, Settings, Menu } from "lucide-react";
+import { LayoutDashboard, Target, History, Settings, Menu, Trophy, ShoppingBag, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { auth } from "@clerk/nextjs/server";
 import { IdentityCard } from "@/components/identity-card";
 import { MobileNav } from "@/components/mobile-nav";
 import { ActCurrencyDisplay } from "@/components/act-currency-display";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/prisma";
 import { calculateEnforcementMetrics } from "@/lib/metrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
 
 interface NavItemProps {
     href: string;
@@ -26,14 +26,14 @@ interface NavItemProps {
 
 function NavItem({ href, icon: Icon, label, subtext }: NavItemProps) {
     return (
-        <Link href={href} className="group block border-b border-zinc-800 p-4 hover:bg-zinc-900/50 transition-colors">
+        <Link href={href} className="group block border-b border-sidebar-border p-4 hover:bg-sidebar-accent/50 transition-colors">
             <div className="flex items-center gap-3 mb-1">
-                <Icon className="h-4 w-4 text-zinc-600 group-hover:text-red-500 transition-colors" />
-                <span className="text-sm font-bold tracking-widest text-zinc-400 group-hover:text-zinc-100 uppercase transition-colors">
+                <Icon className="h-4 w-4 text-sidebar-foreground/60 group-hover:text-sidebar-primary transition-colors" />
+                <span className="text-sm font-bold tracking-widest text-sidebar-foreground/80 group-hover:text-sidebar-foreground uppercase transition-colors">
                     {label}
                 </span>
             </div>
-            <p className="text-[10px] text-zinc-600 font-mono pl-7 uppercase tracking-wider">
+            <p className="text-[10px] text-sidebar-foreground/50 font-mono pl-7 uppercase tracking-wider">
                 {subtext}
             </p>
         </Link>
@@ -47,68 +47,34 @@ export default async function DashboardLayout({
 }) {
     const user = await getOrCreateUser();
 
-    // Fetch active goal for metrics
-    let metrics = null;
-    let totalScore = 0;
-
-    if (user) {
-        const activeGoal = await prisma.goal.findFirst({
-            where: {
-                userId: user.id,
-                status: "ACTIVE",
-            },
-            include: {
-                tasks: {
-                    include: { proof: true }
-                }
-            },
-        });
-
-        // Calculate all goals total score
-        const allGoals = await prisma.goal.findMany({
-            where: { userId: user.id },
-            include: {
-                tasks: {
-                    include: { proof: true }
-                }
-            }
-        });
-
-        totalScore = allGoals.reduce((sum, goal) => {
-            return sum + goal.tasks.reduce((acc, t) => {
-                if (t.state === 'ACCEPTED') return acc + 5;
-                if (t.state === 'FAILED') return acc - 3;
-                if (t.state === 'REJECTED') return acc - 2;
-                return acc;
-            }, 0);
-        }, 0);
-
-        if (activeGoal) {
-            metrics = calculateEnforcementMetrics(user, activeGoal as any);
-        }
+    if (user && !user.name) {
+        // Avoid redirect loop if we are already on onboarding (but this is dashboard layout so safe)
+        // Actually, we use redirect from next/navigation
+        const { redirect } = await import("next/navigation");
+        redirect("/onboarding/profile");
     }
 
     return (
-        <div className="flex h-screen bg-black text-white font-sans selection:bg-red-500/30">
+        <div className="flex h-screen bg-background text-foreground font-sans selection:bg-primary/30">
             {/* Sidebar (Desktop) */}
-            <aside className="w-72 border-r border-zinc-800 bg-black hidden md:flex flex-col">
-                <div className="p-6 border-b border-zinc-800">
+            <aside className="w-72 border-r border-sidebar-border bg-sidebar hidden md:flex flex-col">
+                <div className="p-6 border-b border-sidebar-border">
                     <div className="relative w-48 h-12">
                         <Image
-                            src="/logo.png"
+                            src="/actify-logo.png"
                             alt="ACTIFY"
                             fill
-                            className="object-contain object-left"
+                            className="object-contain object-left dark:invert-0 dark:hue-rotate-0 minimal:invert-0 minimal:hue-rotate-0 invert hue-rotate-180"
                             priority
                         />
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                        <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">System Armed</span>
+                        <div className="h-2 w-2 bg-destructive rounded-full animate-pulse" />
+                        <span className="text-[10px] font-mono text-sidebar-foreground/50 uppercase tracking-widest">System Armed</span>
                     </div>
                 </div>
 
-                <nav className="flex-1 flex flex-col">
+                <nav className="flex-1 flex flex-col overflow-y-auto">
                     <NavItem
                         href="/dashboard"
                         icon={LayoutDashboard}
@@ -116,48 +82,75 @@ export default async function DashboardLayout({
                         subtext="Current Enforced Objective"
                     />
 
-                    <div>
-                        <NavItem
-                            href="/dashboard/history"
-                            icon={History}
-                            label="Execution Log"
-                            subtext="Immutable Record"
-                        />
-                    </div>
+                    <NavItem
+                        href="/dashboard/leaderboard"
+                        icon={Trophy}
+                        label="Leaderboard"
+                        subtext="Global Rankings"
+                    />
 
                     <NavItem
-                        href="/dashboard/settings"
-                        icon={Settings}
-                        label="System Parameters"
-                        subtext="Limited Control"
+                        href="/dashboard/store"
+                        icon={ShoppingBag}
+                        label="Actify Store"
+                        subtext="Resources & Power-ups"
                     />
+
+                    <NavItem
+                        href="/dashboard/history"
+                        icon={History}
+                        label="Execution Log"
+                        subtext="Immutable Record"
+                    />
+
+                    <NavItem
+                        href="/dashboard/profile"
+                        icon={User}
+                        label="Identity"
+                        subtext="User Profile"
+                    />
+
+                    <div className="mt-auto">
+                        <NavItem
+                            href="/dashboard/settings"
+                            icon={Settings}
+                            label="System Parameters"
+                            subtext="Limited Control"
+                        />
+                    </div>
                 </nav>
 
-                <div className="p-4 bg-black mt-auto">
-                    <div className="text-[8px] text-zinc-800 font-mono uppercase text-center mt-4">
+                <div className="p-4 bg-sidebar">
+                    <div className="text-[8px] text-sidebar-foreground/50 font-mono uppercase text-center mt-4">
                         Actify Enforcement Protocol v2.0
                     </div>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col overflow-hidden bg-black">
+            <main className="flex-1 flex flex-col overflow-hidden bg-background">
                 {/* Top Header */}
-                <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-black">
+                <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-background">
                     {/* Mobile Menu Trigger */}
                     <div className="md:hidden flex items-center gap-4">
                         <MobileNav />
-                        <span className="font-bold tracking-tight text-sm md:hidden">ACTIFY</span>
+                        <span className="font-bold tracking-tight text-sm md:hidden text-foreground">ACTIFY</span>
                     </div>
 
                     <div className="ml-auto flex items-center gap-4 md:gap-8">
-                        {/* ACT Currency Display - Always render to avoid hydration mismatch */}
-                        <ActCurrencyDisplay metrics={metrics} totalScore={totalScore} />
+                        {/* ACT Currency Display */}
+                        <ActCurrencyDisplay
+                            actPoints={user?.actPoints || 0}
+                            actCurrency={user?.actCurrency || 0}
+                        />
+
+                        {/* Theme Switcher */}
+                        <ThemeSwitcher />
 
                         <UserButton
                             appearance={{
                                 elements: {
-                                    avatarBox: "h-8 w-8 rounded-sm border border-zinc-700",
+                                    avatarBox: "h-8 w-8 rounded-sm border border-border",
                                 }
                             }}
                         />
@@ -165,7 +158,7 @@ export default async function DashboardLayout({
                 </header>
 
                 {/* Page Content */}
-                <div className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+                <div className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                     {children}
                 </div>
             </main>

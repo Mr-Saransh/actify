@@ -16,6 +16,13 @@ export async function getOrCreateUser(): Promise<User | null> {
     });
 
     if (existingUser) {
+        // Sync Image if changed
+        if (existingUser.image !== clerkUser.imageUrl) {
+            await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { image: clerkUser.imageUrl } as any
+            });
+        }
         return existingUser;
     }
 
@@ -28,8 +35,9 @@ export async function getOrCreateUser(): Promise<User | null> {
         data: {
             clerkId: clerkUser.id,
             email: email,
+            image: clerkUser.imageUrl,
             level: 1, // Start at Level 1
-        },
+        } as any,
     });
 
     return newUser;
