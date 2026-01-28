@@ -18,8 +18,8 @@ export function GoalIntelligence({ goal }: GoalIntelligenceProps) {
     const daysRemaining = Math.max(0, Math.ceil((new Date(goal.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
 
     return (
-        <Card className="bg-card border-border border-b-2 rounded-none md:rounded-lg mb-4 md:mb-6">
-            <CardContent className="p-3 md:p-4 lg:p-6 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="bg-card border-border border-b-2 rounded-none md:rounded-lg">
+            <CardContent className="p-3 md:p-4 lg:p-6 grid grid-cols-4 gap-2 md:gap-4 overflow-x-auto">
                 {/* Type */}
                 <div className="flex flex-col gap-1 border-r border-border last:border-0 pr-3 md:pr-4">
                     <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1">

@@ -108,10 +108,13 @@ export default async function DashboardPage() {
         <div className="space-y-4 md:space-y-8 max-w-6xl mx-auto pb-6 md:pb-12">
 
             {/* 0. HEADER CONTEXT - Sticky on mobile for visibility */}
-            <div className="md:static sticky top-0 z-10 bg-background pb-3">
-                <div className="flex items-center justify-between gap-3 mb-2">
-                    <GoalIntelligence goal={activeGoal as any} />
-                    <div className="flex items-center gap-2">
+            {/* 0. HEADER CONTEXT */}
+            <div className="bg-background pb-3">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+                    <div className="w-full">
+                        <GoalIntelligence goal={activeGoal as any} />
+                    </div>
+                    <div className="flex items-center justify-end gap-2 px-1">
                         <PowerUpDisplay />
                         <DailyStatusBadge />
                     </div>
@@ -119,7 +122,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* 1. TOP SECTION: TODAY'S TASK (DOMINANT) */}
-            <section className="w-full animate-in zoom-in-50 duration-500">
+            <section className="w-full animate-in zoom-in-50 duration-500 mb-8 md:mb-12">
                 {currentTask ? (
                     <TaskView task={currentTask} />
                 ) : isGoalCompleted ? (
@@ -144,23 +147,20 @@ export default async function DashboardPage() {
                 )}
             </section>
 
-            {/* 2. MIDDLE SECTION: PRESSURE GRID - Mobile optimized */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                {/* Ego / Impact - Hidden on mobile */}
-                <div className="hidden md:block">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Ego / Impact</h4>
+            {/* 2. MIDDLE SECTION: PRESSURE GRID */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-12">
+                {/* Ego / Impact */}
+                <div>
                     <FailurePanel metrics={metrics} />
                 </div>
 
-                {/* Enforcement Data - Always visible (core status) */}
+                {/* Enforcement Data */}
                 <div>
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Enforcement Data</h4>
                     <EnforcementStats metrics={metrics} />
                 </div>
 
-                {/* Risk Forecast - Hidden on mobile */}
-                <div className="hidden md:block">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Risk Forecast</h4>
+                {/* Risk Forecast */}
+                <div>
                     <RiskForecast metrics={metrics} />
                 </div>
             </section>

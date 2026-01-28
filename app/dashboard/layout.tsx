@@ -134,7 +134,15 @@ export default async function DashboardLayout({
                     {/* Mobile Menu Trigger */}
                     <div className="md:hidden flex items-center gap-4">
                         <MobileNav />
-                        <span className="font-bold tracking-tight text-sm md:hidden text-foreground">ACTIFY</span>
+                        <div className="relative w-24 h-8">
+                            <Image
+                                src="/actify-logo.png"
+                                alt="ACTIFY"
+                                fill
+                                className="object-contain object-left dark:invert-0 dark:hue-rotate-0 minimal:invert-0 minimal:hue-rotate-0 invert hue-rotate-180"
+                                priority
+                            />
+                        </div>
                     </div>
 
                     <div className="ml-auto flex items-center gap-4 md:gap-8">
