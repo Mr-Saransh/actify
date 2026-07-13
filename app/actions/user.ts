@@ -11,34 +11,22 @@ export async function getOrCreateUser(): Promise<User | null> {
         return null;
     }
 
-    const existingUser = await prisma.user.findUnique({
-        where: { clerkId: clerkUser.id },
-    });
-
-    if (existingUser) {
-        // Sync Image if changed
-        if (existingUser.image !== clerkUser.imageUrl) {
-            await prisma.user.update({
-                where: { id: existingUser.id },
-                data: { image: clerkUser.imageUrl } as any
-            });
-        }
-        return existingUser;
-    }
-
-    // Create new user
     const email = clerkUser.emailAddresses[0]?.emailAddress;
 
     if (!email) throw new Error("User has no email address");
 
-    const newUser = await prisma.user.create({
-        data: {
+    const user = await prisma.user.upsert({
+        where: { clerkId: clerkUser.id },
+        update: {
+            image: clerkUser.imageUrl, // Automatically syncs image on login
+        },
+        create: {
             clerkId: clerkUser.id,
             email: email,
             image: clerkUser.imageUrl,
             level: 1, // Start at Level 1
-        } as any,
+        },
     });
 
-    return newUser;
+    return user;
 }
