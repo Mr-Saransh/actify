@@ -3,47 +3,64 @@ export type StoreItem = {
     name: string;
     description: string;
     cost: number;
-    type: "POWERUP" | "MERCH" | "RESOURCE";
+    category: "POWER-UP" | "MERCH" | "RESOURCE";
     icon: string;
     action: "FREEZE" | "BEYOND" | "NONE";
 };
 
 export const STORE_ITEMS: StoreItem[] = [
     {
-        id: "freeze_01",
-        name: "Liquid Nitrogen Freeze",
-        description: "Forgives one full day of failure. Automatically consumed.",
-        cost: 15,
-        type: "POWERUP",
-        icon: "/liquid-freeze.png",
-        action: "FREEZE"
+        id: "freeze-1",
+        name: "Freeze ACT",
+        description: "Pause your goal for 24h without losing your streak or incurring failure penalties.",
+        cost: 150,
+        category: "POWER-UP",
+        action: "FREEZE",
+        icon: "❄️"
     },
     {
-        id: "beyond_01",
+        id: "beyond-1",
         name: "Beyond ACT",
-        description: "Instantly unlocks the next task, ignoring daily limits.",
-        cost: 10,
-        type: "POWERUP",
-        icon: "/beyond-act.png",
-        action: "BEYOND"
-    },
-    // Merch Placeholders
-    {
-        id: "merch_hoodie",
-        name: "Actify Operator Tee",
-        description: "Premium cotton tee with Actify branding. Execute or Fail.",
-        cost: 500,
-        type: "MERCH",
-        icon: "/actify-tshirt.png",
-        action: "NONE"
+        description: "Bypass the daily task limit and complete one extra task today.",
+        cost: 300,
+        category: "POWER-UP",
+        action: "BEYOND",
+        icon: "⚡"
     },
     {
-        id: "merch_sticker",
-        name: "Holographic Sticker Pack",
-        description: "5x Die-cut holographic stickers. Execute or Fail branding.",
-        cost: 50,
-        type: "MERCH",
-        icon: "/actify-sticker.jpg",
-        action: "NONE"
+        id: "res-1",
+        name: "UI/UX Starter Kit",
+        description: "Figma templates and component libraries for modern SaaS design.",
+        cost: 250,
+        category: "RESOURCE",
+        action: "NONE",
+        icon: "🎨"
+    },
+    {
+        id: "res-2",
+        name: "System Design Guide",
+        description: "Comprehensive PDF guide to cracking system design interviews.",
+        cost: 400,
+        category: "RESOURCE",
+        action: "NONE",
+        icon: "📐"
+    },
+    {
+        id: "merch-1",
+        name: "Execution OS Mousepad",
+        description: "Premium desk mat with the ACTIFY Execution OS grid design.",
+        cost: 1200,
+        category: "MERCH",
+        action: "NONE",
+        icon: "🖱️"
+    },
+    {
+        id: "merch-2",
+        name: "ACTIFY Hoodie",
+        description: "Black premium hoodie with minimalist ACTIFY branding.",
+        cost: 2500,
+        category: "MERCH",
+        action: "NONE",
+        icon: "👕"
     }
 ];

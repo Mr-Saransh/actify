@@ -1,7 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google"; // Corrected imports
+import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
@@ -11,15 +11,9 @@ const inter = Inter({
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space",
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
-  title: "ACTIFY",
-  description: "High-Performance Protocol Enforcement",
+  title: "ACTIFY — Execution Operating System",
+  description: "Stop planning. Start executing. ACTIFY enforces your goals through mandatory daily protocols, real accountability, and permanent records.",
 };
 
 export default function RootLayout({
@@ -30,13 +24,13 @@ export default function RootLayout({
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground`}>
+        <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
-            themes={["dark", "light-focus", "minimal", "beautiful"]}
-            enableSystem
-            disableTransitionOnChange
+            themes={["dark", "black", "light", "modern", "beautiful"]}
+            enableSystem={false}
+            disableTransitionOnChange={false}
           >
             {children}
             <Toaster />

@@ -2,14 +2,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { getOrCreateUser } from "@/app/actions/user";
-import { SettingsClient } from "./settings-client";
+import { CommunityClient } from "./community-client";
 
-export default async function SettingsPage() {
+export default async function CommunityPage() {
     const user = await getOrCreateUser();
 
     if (!user) {
         return <div className="flex items-center justify-center h-full text-muted-foreground">Authenticating...</div>;
     }
 
-    return <SettingsClient />;
+    return <CommunityClient />;
 }

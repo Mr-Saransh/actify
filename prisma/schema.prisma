@@ -45,6 +45,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   goals Goal[]
+  listings MarketplaceListing[]
 }
 
 model Goal {
@@ -120,4 +121,17 @@ enum ReviewStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+model MarketplaceListing {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Int      // Price in ACT Currency
+  imageUrl    String?  // Cloudinary URL
+  sellerId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seller      User     @relation(fields: [sellerId], references: [id])
 }
