@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { CheckSquare, Flame, Trophy, Coins, Target, Shield, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -19,12 +20,19 @@ export default function Home() {
                     />
                 </div>
                 <div className="flex gap-4">
-                    <Link href="/sign-in">
-                        <Button variant="ghost" className="hidden sm:inline-flex">Sign In</Button>
-                    </Link>
-                    <Link href="/sign-up">
-                        <Button>Get Started <ArrowRight className="w-4 h-4 ml-2" /></Button>
-                    </Link>
+                    <SignedOut>
+                        <Link href="/sign-in">
+                            <Button variant="ghost" className="hidden sm:inline-flex">Sign In</Button>
+                        </Link>
+                        <Link href="/sign-up">
+                            <Button>Get Started <ArrowRight className="w-4 h-4 ml-2" /></Button>
+                        </Link>
+                    </SignedOut>
+                    <SignedIn>
+                        <Link href="/dashboard">
+                            <Button>Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button>
+                        </Link>
+                    </SignedIn>
                 </div>
             </nav>
 
@@ -45,11 +53,20 @@ export default function Home() {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up stagger-4">
-                    <Link href="/sign-up">
-                        <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-primary/20">
-                            Initialize Protocol
-                        </Button>
-                    </Link>
+                    <SignedOut>
+                        <Link href="/sign-up">
+                            <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-primary/20">
+                                Initialize Protocol
+                            </Button>
+                        </Link>
+                    </SignedOut>
+                    <SignedIn>
+                        <Link href="/dashboard">
+                            <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-primary/20">
+                                Go to Dashboard
+                            </Button>
+                        </Link>
+                    </SignedIn>
                     <Link href="#features">
                         <Button variant="outline" size="lg" className="h-14 px-8 text-lg w-full sm:w-auto">
                             View System Specs
