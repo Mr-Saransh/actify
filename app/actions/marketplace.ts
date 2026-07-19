@@ -39,11 +39,11 @@ export async function uploadImageToCloudinary(formData: FormData): Promise<{ url
     }
 }
 
-export async function createListing(data: { title: string; description: string; price: number; imageUrl?: string }) {
+export async function createListing(data: { title: string; description: string; price: number; category: string; imageUrl?: string }) {
     const user = await getOrCreateUser();
     if (!user) return { success: false, message: "Unauthorized" };
 
-    if (!data.title || !data.description || data.price < 0) {
+    if (!data.title || !data.description || data.price < 0 || !data.category) {
         return { success: false, message: "Invalid listing data" };
     }
 
@@ -53,9 +53,10 @@ export async function createListing(data: { title: string; description: string; 
                 title: data.title,
                 description: data.description,
                 price: data.price,
+                category: data.category,
                 imageUrl: data.imageUrl,
                 sellerId: user.id,
-            }
+            } as any
         });
 
         revalidatePath("/dashboard/marketplace");
@@ -63,6 +64,83 @@ export async function createListing(data: { title: string; description: string; 
     } catch (error) {
         console.error("Create listing error:", error);
         return { success: false, message: "Failed to create listing" };
+    }
+}
+
+export async function publishJourney(goalId: string, price: number, description: string) {
+    const user = await getOrCreateUser();
+    if (!user) return { success: false, message: "Unauthorized" };
+
+    // Fetch Goal with everything
+    const rawGoal = await prisma.goal.findUnique({
+        where: { id: goalId },
+        include: {
+            milestones: { orderBy: { order: "asc" } },
+            tasks: { 
+                orderBy: { date: "asc" },
+                include: { proof: true }
+            }
+        } as any
+    });
+    const goal = rawGoal as any;
+
+    if (!goal || goal.userId !== user.id) {
+        return { success: false, message: "Goal not found or unauthorized." };
+    }
+
+    if (goal.status !== "COMPLETED") {
+        return { success: false, message: "Only completed goals can be published as verified journeys." };
+    }
+
+    // Check if already published
+    const existing = await prisma.marketplaceListing.findFirst({
+        where: { sellerId: user.id, title: goal.title, category: "JOURNEY" } as any
+    });
+
+    if (existing) {
+        return { success: false, message: "You have already published this journey." };
+    }
+
+    // Create JSON Snapshot
+    const journeyData = {
+        goal: {
+            title: goal.title,
+            category: goal.category,
+            experienceLevel: goal.experienceLevel,
+            estimatedHours: goal.estimatedHours,
+            difficulty: goal.difficulty,
+            timePerDay: goal.timePerDay,
+        },
+        milestones: goal.milestones.map((m: any) => ({ title: m.title, description: m.description, duration: m.duration })),
+        tasks: goal.tasks.filter((t: any) => t.state === "ACCEPTED").map((t: any) => ({
+            title: t.title,
+            objective: t.objective,
+            expectedOutput: t.expectedOutput,
+            resources: t.resources,
+            hints: t.hints,
+            proof: t.proof ? { content: t.proof.content, aiFeedback: t.proof.aiFeedback } : null
+        }))
+    };
+
+    try {
+        // Publish to Marketplace
+        await prisma.marketplaceListing.create({
+            data: {
+                sellerId: user.id,
+                title: goal.title,
+                description: description || `A verified journey from my completion of ${goal.title}.`,
+                price: price,
+                category: "JOURNEY",
+                journeyData: journeyData
+            } as any
+        });
+
+        revalidatePath("/dashboard/marketplace");
+        revalidatePath("/dashboard/history");
+        return { success: true, message: "Journey published successfully!" };
+    } catch (error) {
+        console.error("Publish journey error:", error);
+        return { success: false, message: "Failed to publish journey" };
     }
 }
 

@@ -11,9 +11,9 @@ export type StoreItem = {
 export const STORE_ITEMS: StoreItem[] = [
     {
         id: "freeze-1",
-        name: "Freeze ACT",
+        name: "Liquid Freeze",
         description: "Pause your goal for 24h without losing your streak or incurring failure penalties.",
-        cost: 150,
+        cost: 15,
         category: "POWER-UP",
         action: "FREEZE",
         icon: "❄️"
@@ -22,7 +22,7 @@ export const STORE_ITEMS: StoreItem[] = [
         id: "beyond-1",
         name: "Beyond ACT",
         description: "Bypass the daily task limit and complete one extra task today.",
-        cost: 300,
+        cost: 10,
         category: "POWER-UP",
         action: "BEYOND",
         icon: "⚡"

@@ -54,7 +54,7 @@ export async function checkDailyDeadlines(userId: string) {
             await prisma.user.update({
                 where: { id: userId },
                 data: {
-                    actPoints: { decrement: 3 },
+                    actPoints: { decrement: 2 },
                     failures: { increment: 1 }
                 } as any
             });
@@ -66,7 +66,7 @@ export async function checkDailyDeadlines(userId: string) {
                     content: "System: Deadline Missed",
                     explanation: "The user failed to complete the task before the deadline.",
                     reviewStatus: "REJECTED",
-                    aiFeedback: "Deadline missed. -3 ACT Points. Consistency is key. The task has been reassigned for today.",
+                    aiFeedback: "Deadline missed. -2 ACT Points. Consistency is key. The task has been reassigned for today.",
                 }
             });
         }

@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/prisma";
-import { CreateGoalForm } from "@/components/create-goal-form";
+import { MissionPlanner } from "@/components/mission-planner";
 import { getCurrentLevelTask, checkDailyDeadlines, proceedToNextTask } from "@/app/actions/task";
 import { TaskView } from "@/components/task-view";
 import { redirect } from "next/navigation";
@@ -19,6 +19,7 @@ import { checkDailyFailure } from "@/app/actions/daily-check";
 import { DailyStatusBadge } from "@/components/daily-status-badge";
 import { PowerUpDisplay } from "@/components/power-up-display";
 import { Target, CheckCircle, AlertTriangle } from "lucide-react";
+import { GenerateTaskButton } from "@/components/generate-task-button";
 
 
 export default async function DashboardPage() {
@@ -55,8 +56,8 @@ export default async function DashboardPage() {
 
     if (!activeGoal) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <CreateGoalForm />
+            <div className="flex items-center justify-center min-h-[60vh] py-12">
+                <MissionPlanner />
             </div>
         );
     }
@@ -124,9 +125,7 @@ export default async function DashboardPage() {
                         <p className="text-muted-foreground">Capacity Reached ({metrics.dailyLimit}/{metrics.dailyLimit}). Protocol resumes at 00:00.</p>
                     </div>
                 ) : (
-                    <div className="p-8 md:p-12 text-center rounded-xl border border-dashed border-border">
-                        <p className="text-muted-foreground">No active directives. Stand by.</p>
-                    </div>
+                    <GenerateTaskButton goalId={activeGoal.id} />
                 )}
             </section>
 

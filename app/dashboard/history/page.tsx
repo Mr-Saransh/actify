@@ -2,6 +2,7 @@ import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/prisma";
 import { History, CheckCircle, XCircle, AlertCircle, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { PublishJourneyButton } from "../../../components/publish-journey-button";
 
 export const runtime = "nodejs";
 
@@ -65,8 +66,34 @@ export default async function HistoryPage() {
                 </div>
             </div>
 
+            {/* Completed Goals Section */}
+            {goals.filter(g => g.status === 'COMPLETED').length > 0 && (
+                <div className="space-y-4 pt-4">
+                    <h2 className="text-xl font-bold tracking-tight">Completed Goals</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {goals.filter(g => g.status === 'COMPLETED').map((goal: any) => (
+                            <div key={goal.id} className="p-4 rounded-xl border border-border bg-emerald-500/5 flex flex-col justify-between h-full">
+                                <div>
+                                    <h3 className="font-bold text-lg text-emerald-500 flex items-center gap-2">
+                                        <CheckCircle className="w-5 h-5" />
+                                        {goal.title}
+                                    </h3>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{goal.description}</p>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-emerald-500/10 flex items-center justify-between">
+                                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                                        + {Math.floor((goal.estimatedHours || 10) * (goal.difficulty === 'Hard' ? 3 : goal.difficulty === 'Medium' ? 2 : 1) * 10)} ACT Currency
+                                    </Badge>
+                                    <PublishJourneyButton goalId={goal.id} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Timeline */}
-            <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent pt-4">
+            <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent pt-4 mt-8">
                 {allTasks.length === 0 ? (
                     <div className="text-center py-12 relative z-10 bg-background/80 backdrop-blur-sm rounded-xl">
                         <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />

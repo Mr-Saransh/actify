@@ -1,96 +1,166 @@
 "use client";
 
-import { MessageSquare, Users, MessageCircle } from "lucide-react";
+import { MessageSquare, Send, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { getConversations, getMessages, sendMessage } from "@/app/actions/community";
 
-export function CommunityClient() {
-    const [message, setMessage] = useState("");
+interface CommunityClientProps {
+    currentUserId: string;
+}
 
-    const posts = [
-        { id: 1, user: "Priya Verma", initials: "PV", message: "Just completed my 90-day Full-Stack journey! 🎉 The grind was worth every minute.", time: "2m ago", likes: 24, liked: false },
-        { id: 2, user: "Rahul Singh", initials: "RS", message: "Day 21 streak! DSA is getting harder but I'm loving the challenge 💪 Who else is on the grind?", time: "15m ago", likes: 18, liked: false },
-        { id: 3, user: "Kavya Nair", initials: "KN", message: "Anyone else working on the System Design goal? Let's form a study group and hold each other accountable!", time: "1h ago", likes: 31, liked: true },
-        { id: 4, user: "Meera Joshi", initials: "MJ", message: "Submitted proof for my biggest task yet — 500 lines of clean backend code. Acceptance rate holding at 94% 🚀", time: "2h ago", likes: 45, liked: false },
-    ];
+export function CommunityClient({ currentUserId }: CommunityClientProps) {
+    const [conversations, setConversations] = useState<any[]>([]);
+    const [selectedUser, setSelectedUser] = useState<any | null>(null);
+    const [messages, setMessages] = useState<any[]>([]);
+    const [newMessage, setNewMessage] = useState("");
+    const [isSending, setIsSending] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        getConversations().then(res => {
+            if (res.success && res.data) {
+                setConversations(res.data);
+                if (res.data.length > 0) {
+                    setSelectedUser(res.data[0]);
+                }
+            }
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!selectedUser) return;
+        let interval: NodeJS.Timeout;
+
+        const fetchMessages = () => {
+            getMessages(selectedUser.id).then(res => {
+                if (res.success && res.data) {
+                    setMessages(res.data);
+                    // Scroll to bottom
+                    if (scrollRef.current) {
+                        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                    }
+                }
+            });
+        };
+
+        fetchMessages();
+        interval = setInterval(fetchMessages, 3000); // Simple polling
+        return () => clearInterval(interval);
+    }, [selectedUser]);
+
+    const handleSend = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim() || !selectedUser) return;
+
+        setIsSending(true);
+        const text = newMessage;
+        setNewMessage(""); // Optimistic clear
+        
+        // Optimistic UI update
+        setMessages(prev => [...prev, { id: 'temp', content: text, senderId: currentUserId, createdAt: new Date() }]);
+
+        await sendMessage(selectedUser.id, text);
+        setIsSending(false);
+    };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-12">
-            <div className="space-y-1">
+        <div className="max-w-6xl mx-auto space-y-6 pb-12 h-[calc(100vh-8rem)] flex flex-col">
+            <div className="space-y-1 shrink-0">
                 <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                     <MessageSquare className="w-6 h-6 text-primary" />
-                    Community
+                    Community Chat
                 </h1>
-                <p className="text-sm text-muted-foreground">Connect with other executors. (Coming Soon)</p>
+                <p className="text-sm text-muted-foreground">Connect with buyers and sellers directly.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Main Feed */}
-                <div className="md:col-span-2 space-y-4">
-                    {/* Input Area */}
-                    <div className="rounded-xl border border-border bg-card p-4 animate-slide-up">
-                        <div className="flex gap-3">
-                            <Avatar className="w-10 h-10 border border-border">
-                                <AvatarFallback className="bg-primary/10 text-primary">ME</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 space-y-3">
-                                <Input 
-                                    placeholder="Share your progress or ask for accountability..." 
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    className="bg-secondary/50 border-transparent focus-visible:ring-primary"
-                                />
-                                <div className="flex justify-end">
-                                    <Button size="sm" onClick={() => setMessage("")} disabled={!message}>Post Update</Button>
-                                </div>
-                            </div>
-                        </div>
+            <div className="flex-1 border border-border bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-sm animate-slide-up">
+                {/* Contacts Pane */}
+                <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-border bg-secondary/20 flex flex-col shrink-0">
+                    <div className="p-4 border-b border-border bg-card/50">
+                        <h2 className="font-semibold text-sm">Conversations</h2>
                     </div>
-
-                    {/* Posts */}
-                    <div className="space-y-4">
-                        {posts.map((post, i) => (
-                            <div key={post.id} className="rounded-xl border border-border bg-card p-4 animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="w-10 h-10 border border-border">
-                                            <AvatarFallback className="bg-secondary text-secondary-foreground">{post.initials}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold text-sm">{post.user}</p>
-                                            <p className="text-xs text-muted-foreground">{post.time}</p>
-                                        </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {conversations.length === 0 ? (
+                            <div className="p-6 text-center text-sm text-muted-foreground">No conversations yet.</div>
+                        ) : (
+                            conversations.map(user => (
+                                <button
+                                    key={user.id}
+                                    onClick={() => setSelectedUser(user)}
+                                    className={`w-full text-left p-4 flex items-center gap-3 transition-colors hover:bg-secondary/50 border-b border-border/50 ${selectedUser?.id === user.id ? 'bg-secondary border-l-2 border-l-primary' : ''}`}
+                                >
+                                    <Avatar className="w-10 h-10 border border-border shrink-0">
+                                        <AvatarImage src={user.image} />
+                                        <AvatarFallback className="bg-primary/10 text-primary">
+                                            {(user.name || user.email).substring(0, 2).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="overflow-hidden">
+                                        <p className="font-medium text-sm truncate">{user.name || user.email.split('@')[0]}</p>
                                     </div>
-                                </div>
-                                <p className="text-sm leading-relaxed mb-4">{post.message}</p>
-                                <div className="flex items-center gap-4 text-muted-foreground">
-                                    <button className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${post.liked ? 'text-pink-500' : 'hover:text-foreground'}`}>
-                                        <MessageCircle className="w-4 h-4" /> {post.likes}
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                                </button>
+                            ))
+                        )}
                     </div>
                 </div>
 
-                {/* Sidebar */}
-                <div className="space-y-4 animate-slide-up stagger-2">
-                    <div className="rounded-xl border border-border bg-card p-4">
-                        <h3 className="font-semibold flex items-center gap-2 mb-4">
-                            <Users className="w-4 h-4 text-primary" /> Active Goal Groups
-                        </h3>
-                        <div className="space-y-3">
-                            {["Full-Stack Bootcamp (142 members)", "DSA Grind (89 members)", "System Design Prep (56 members)"].map((group) => (
-                                <div key={group} className="p-3 rounded-lg bg-secondary/50 border border-border hover:border-primary/50 cursor-pointer transition-colors">
-                                    <p className="text-sm font-medium">{group.split('(')[0]}</p>
-                                    <p className="text-[11px] text-muted-foreground">({group.split('(')[1]}</p>
-                                </div>
-                            ))}
+                {/* Chat Pane */}
+                <div className="flex-1 flex flex-col min-h-0 bg-background/50">
+                    {selectedUser ? (
+                        <>
+                            {/* Chat Header */}
+                            <div className="p-4 border-b border-border bg-card/50 flex items-center gap-3 shrink-0">
+                                <Avatar className="w-8 h-8 border border-border">
+                                    <AvatarImage src={selectedUser.image} />
+                                    <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                                </Avatar>
+                                <span className="font-semibold text-sm">{selectedUser.name || selectedUser.email}</span>
+                            </div>
+
+                            {/* Chat Messages */}
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
+                                {messages.length === 0 ? (
+                                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                                        Say hello!
+                                    </div>
+                                ) : (
+                                    messages.map((msg, i) => {
+                                        const isMe = msg.senderId === currentUserId;
+                                        return (
+                                            <div key={msg.id || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                <div className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-secondary text-secondary-foreground rounded-bl-sm border border-border'}`}>
+                                                    {msg.content}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+
+                            {/* Chat Input */}
+                            <div className="p-4 bg-card border-t border-border shrink-0">
+                                <form onSubmit={handleSend} className="flex gap-2">
+                                    <Input 
+                                        placeholder="Type a message..." 
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        className="bg-secondary/50"
+                                    />
+                                    <Button type="submit" size="icon" disabled={!newMessage.trim() || isSending}>
+                                        <Send className="w-4 h-4" />
+                                    </Button>
+                                </form>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
+                            <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
+                            <p>Select a conversation to start chatting</p>
                         </div>
-                        <Button variant="outline" className="w-full mt-4" size="sm">Browse All Groups</Button>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

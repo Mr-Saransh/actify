@@ -11,5 +11,5 @@ export default async function CommunityPage() {
         return <div className="flex items-center justify-center h-full text-muted-foreground">Authenticating...</div>;
     }
 
-    return <CommunityClient />;
+    return <CommunityClient currentUserId={user.id} />;
 }

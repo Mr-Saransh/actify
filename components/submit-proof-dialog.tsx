@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -24,6 +25,7 @@ interface SubmitProofDialogProps {
 export function SubmitProofDialog({ taskId }: SubmitProofDialogProps) {
     const [open, setOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     async function handleSubmit(formData: FormData) {
         setIsSubmitting(true);
@@ -32,6 +34,9 @@ export function SubmitProofDialog({ taskId }: SubmitProofDialogProps) {
 
         if (result.success) {
             setOpen(false);
+            if (result.requiresQuiz && result.proofId) {
+                router.push(`/dashboard/quiz/${result.proofId}`);
+            }
         } else {
             alert(result.message); // Simple alert for MVP
             // Keep dialog open for retry

@@ -31,11 +31,16 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
     const [listings, setListings] = useState(initialListings);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+
+    // Filter logic
+    const filteredListings = initialListings.filter(l => categoryFilter === "ALL" || l.category === categoryFilter);
 
     // Form state
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
+    const [category, setCategory] = useState("RESOURCE");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -74,6 +79,7 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
                 title,
                 description,
                 price: parseInt(price) || 0,
+                category,
                 imageUrl
             });
 
@@ -84,6 +90,7 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
                 setTitle("");
                 setDescription("");
                 setPrice("");
+                setCategory("RESOURCE");
                 setImageFile(null);
                 setImagePreview(null);
                 // The page will revalidate and update automatically due to revalidatePath
@@ -135,6 +142,20 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
                         </DialogHeader>
                         <form onSubmit={handleCreateListing} className="space-y-4 pt-4">
                             <div className="space-y-2">
+                                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Category</label>
+                                <select 
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    required
+                                >
+                                    <option value="RESOURCE">Resource</option>
+                                    <option value="TEMPLATE">Template</option>
+                                    <option value="PRODUCT">Physical Product</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
                                 <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Title</label>
                                 <Input placeholder="e.g. Full-Stack Mastery Roadmap" value={title} onChange={(e) => setTitle(e.target.value)} required />
                             </div>
@@ -178,24 +199,39 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
                 </Dialog>
             </div>
 
+            {/* Tabs */}
+            <div className="flex overflow-x-auto gap-2 pb-2 mb-4 hide-scrollbar">
+                {["ALL", "JOURNEY", "RESOURCE", "TEMPLATE", "PRODUCT"].map(cat => (
+                    <Button 
+                        key={cat} 
+                        variant={categoryFilter === cat ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCategoryFilter(cat)}
+                        className={`rounded-full ${categoryFilter === cat ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground border-border hover:text-foreground'}`}
+                    >
+                        {cat === "ALL" ? "All Items" : cat === "JOURNEY" ? "Verified Journeys" : cat === "RESOURCE" ? "Resources" : cat === "TEMPLATE" ? "Templates" : "Physical Products"}
+                    </Button>
+                ))}
+            </div>
+
             {/* Listings Grid */}
-            {initialListings.length === 0 ? (
+            {filteredListings.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed border-border rounded-xl">
                     <Store className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                     <h3 className="text-lg font-semibold">No listings yet</h3>
-                    <p className="text-muted-foreground text-sm">Be the first to list something on the marketplace!</p>
+                    <p className="text-muted-foreground text-sm">Be the first to list something in this category!</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {initialListings.map((listing, index) => {
+                    {filteredListings.map((listing: any, index: number) => {
                         const isOwner = listing.sellerId === user.id;
                         
                         return (
-                            <div key={listing.id} className="rounded-xl border border-border bg-card overflow-hidden card-hover animate-slide-up flex flex-col" style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div key={listing.id} className="rounded-xl border border-border bg-card overflow-hidden card-hover flex flex-col animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                                 {/* Image Area */}
-                                <div className="relative w-full h-40 bg-secondary/30 flex items-center justify-center overflow-hidden border-b border-border">
+                                <div className="relative w-full h-40 bg-secondary/30 flex items-center justify-center overflow-hidden border-b border-border group cursor-pointer" onClick={() => listing.category === "JOURNEY" && listing.journeyData && alert(JSON.stringify(listing.journeyData, null, 2))}>
                                     {listing.imageUrl ? (
-                                        <Image src={listing.imageUrl} alt={listing.title} fill className="object-cover transition-transform hover:scale-105 duration-500" />
+                                        <Image src={listing.imageUrl} alt={listing.title} fill className="object-cover transition-transform group-hover:scale-105 duration-500" />
                                     ) : (
                                         <Tag className="w-10 h-10 text-muted-foreground/30" />
                                     )}
@@ -203,6 +239,11 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
                                         <Coins className="w-3.5 h-3.5 text-amber-500" />
                                         <span className="text-xs font-bold">{listing.price}</span>
                                     </div>
+                                    {listing.category === "JOURNEY" && (
+                                        <div className="absolute top-2 left-2 bg-emerald-500/90 text-white backdrop-blur-md px-2.5 py-1 rounded-md border border-emerald-400 flex items-center gap-1.5">
+                                            <span className="text-[10px] uppercase font-bold tracking-widest">Verified Journey</span>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 {/* Content */}
@@ -210,7 +251,7 @@ export function MarketplaceClient({ user, initialListings }: MarketplaceClientPr
                                     <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-1">{listing.title}</h3>
                                     <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">{listing.description}</p>
                                     
-                                    <div className="flex items-center justify-between mt-auto">
+                                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
                                         <div className="flex items-center gap-2">
                                             <Avatar className="w-6 h-6 border border-border">
                                                 <AvatarImage src={listing.seller?.image || ""} />
