@@ -1,6 +1,5 @@
-
 import { EnforcementMetrics } from "@/lib/metrics";
-import { Gauge, Activity } from "lucide-react";
+import { Activity, Gauge } from "lucide-react";
 
 interface EnforcementStatsProps {
     metrics: EnforcementMetrics;
@@ -8,67 +7,72 @@ interface EnforcementStatsProps {
 
 export function EnforcementStats({ metrics }: EnforcementStatsProps) {
     const isBehind = metrics.executionSpeed < metrics.requiredSpeed;
+    const probColor = metrics.probability < 50 ? 'bg-destructive shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
+        : metrics.probability < 80 ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]' 
+        : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]';
+
+    const textProbColor = metrics.probability < 50 ? 'text-destructive' 
+        : metrics.probability < 80 ? 'text-amber-500' 
+        : 'text-emerald-500';
 
     return (
-        <div className="bg-card border border-border rounded-lg p-3 md:p-4 font-mono text-sm h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-3 md:mb-4 text-primary font-bold uppercase tracking-widest border-b border-border pb-2">
-                <Activity className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Enforcement Data</span>
+        <div className="relative overflow-hidden bg-card/60 backdrop-blur-xl border border-border rounded-2xl p-5 md:p-6 font-sans flex flex-col justify-between group hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_-5px_rgba(147,51,234,0.15)]">
+            <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-4 relative z-10">
+                <div className="flex items-center gap-2 text-primary">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Activity className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-widest">Enforcement Data</span>
+                </div>
+                <div className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest ${isBehind ? 'bg-destructive/10 text-destructive border border-destructive/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                    {isBehind ? "Behind Schedule" : "On Track"}
+                </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-6 relative z-10 flex-1 flex flex-col justify-center">
                 {/* Speed Comparison */}
-                <div className="grid grid-cols-2 gap-2 text-center bg-secondary/50 p-2 rounded">
-                    <div>
-                        <p className="text-[10px] text-muted-foreground uppercase">Current Speed</p>
-                        <p className={`text-lg font-bold ${isBehind ? 'text-destructive' : 'text-green-500'}`}>
-                            {metrics.executionSpeed}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">tasks/day</p>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 text-center flex flex-col items-center justify-center group/speed transition-colors hover:bg-secondary/60">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Current Speed</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className={`text-3xl font-bold font-mono transition-colors ${isBehind ? 'text-destructive group-hover/speed:text-destructive' : 'text-emerald-500 group-hover/speed:text-emerald-400'}`}>
+                                {metrics.executionSpeed}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-mono">/d</span>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[10px] text-muted-foreground uppercase">Required</p>
-                        <p className="text-lg font-bold text-foreground/80">
-                            {metrics.requiredSpeed}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">tasks/day</p>
+                    <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 text-center flex flex-col items-center justify-center group/req transition-colors hover:bg-secondary/60">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Required</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold font-mono text-foreground group-hover/req:text-white transition-colors">
+                                {metrics.requiredSpeed}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-mono">/d</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Status Badge */}
-                <div className="flex justify-between items-center bg-secondary/30 p-2 rounded border border-border">
-                    <span className="text-muted-foreground">STATUS</span>
-                    <span className={`font-bold px-2 py-0.5 rounded text-xs tracking-wider ${isBehind ? "bg-destructive/10 text-destructive border border-destructive/20"
-                        : "bg-green-500/10 text-green-500 border border-green-500/20"
-                        }`}>
-                        {isBehind ? "BEHIND SCHEDULE" : "ON TRACK"}
-                    </span>
-                </div>
-
-                {/* Probability */}
-                <div className="pt-2">
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground uppercase">Success Probability</span>
-                        <span className={`font-bold ${metrics.probability < 50 ? 'text-destructive' : 'text-primary'}`} title="Based on failure rate, delays, and daily consistency.">
+                {/* Probability Bar */}
+                <div className="space-y-2">
+                    <div className="flex justify-between items-end">
+                        <span className="text-xs text-muted-foreground uppercase tracking-widest">Success Probability</span>
+                        <span className={`text-2xl font-bold font-mono ${textProbColor}`}>
                             {metrics.probability.toFixed(0)}%
                         </span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden" title="Probability of achieving goal by deadline based on current velocity.">
+                    <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden border border-border/50 relative">
                         <div
-                            className={`h-full transition-all duration-500 ${metrics.probability < 50 ? 'bg-destructive'
-                                : metrics.probability < 80 ? 'bg-yellow-500'
-                                    : 'bg-primary'
-                                }`}
-                            style={{ width: `${metrics.probability}%` }}
+                            className={`h-full rounded-full transition-all duration-1000 ease-out ${probColor}`}
+                            style={{ width: `${Math.max(5, metrics.probability)}%` }}
                         />
                     </div>
                 </div>
             </div>
 
             {/* Analysis Footer */}
-            <div className="pt-4 mt-auto border-t border-border">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest block mb-1">Efficiency Analysis</span>
-                <p className={`text-xs italic ${isBehind ? 'text-destructive/80' : 'text-green-500/80'}`}>
+            <div className="pt-4 mt-6 border-t border-border/50 relative z-10">
+                <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest block mb-2 font-bold">Efficiency Analysis</span>
+                <p className={`text-xs font-medium leading-relaxed italic border-l-2 pl-3 py-1 ${isBehind ? 'text-destructive/80 border-destructive/30' : 'text-emerald-500/80 border-emerald-500/30'}`}>
                     "{isBehind
                         ? "Velocity critical. Current pace insufficient to meet deadline. Increase daily output immediately."
                         : "Pace nominal. Maintenance of current velocity projected to result in successful completion."

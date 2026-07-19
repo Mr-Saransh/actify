@@ -194,7 +194,7 @@ export async function approveMission(
                     successProbability: planData.successProbability,
                     commitment: planData.commitment,
                     risks: planData.risks,
-                    status: "ACTIVE",
+                    status: "APPROVED",
                 } as any,
             });
 
@@ -217,5 +217,23 @@ export async function approveMission(
     } catch (error) {
         console.error("Failed to approve mission", error);
         return { success: false, message: "Database Error: Failed to save mission." };
+    }
+}
+
+export async function beginMission(goalId: string) {
+    const user = await getOrCreateUser();
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        await prisma.goal.update({
+            where: { id: goalId, userId: user.id },
+            data: { status: "ACTIVE" }
+        });
+        
+        revalidatePath("/dashboard");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to begin mission", error);
+        return { success: false, message: "Failed to begin mission." };
     }
 }

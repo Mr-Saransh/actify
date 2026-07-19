@@ -2,6 +2,7 @@ import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/prisma";
 import { Trophy, Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 export const runtime = "nodejs";
 
@@ -105,7 +106,7 @@ export default async function LeaderboardPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center gap-3">
+                                            <Link href={`/dashboard/profile/${user.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                                                 <Avatar className="h-8 w-8 border border-border">
                                                     <AvatarImage src={user.image || ""} />
                                                     <AvatarFallback className="text-xs bg-muted font-medium">
@@ -113,12 +114,12 @@ export default async function LeaderboardPage() {
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <span className={`text-sm font-medium ${isCurrentUser ? 'text-primary font-bold' : ''}`}>
+                                                    <span className={`text-sm font-medium hover:underline ${isCurrentUser ? 'text-primary font-bold' : ''}`}>
                                                         {user.name || user.email.split('@')[0]}
                                                         {isCurrentUser && <span className="ml-1 text-xs text-primary">(You)</span>}
                                                     </span>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </td>
                                         <td className="px-4 py-3 text-right font-bold text-primary tabular-nums">
                                             {user.actPoints.toLocaleString()}

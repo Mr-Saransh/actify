@@ -12,6 +12,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { getOrCreateUser } from "@/app/actions/user";
 import { prisma } from "@/lib/prisma";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { NotificationBell } from "@/components/notification-bell";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,10 +90,7 @@ export default async function DashboardLayout({
                             actCurrency={user?.actCurrency || 0}
                         />
 
-                        <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                            <Bell className="h-4 w-4" />
-                            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
-                        </button>
+                        <NotificationBell />
 
                         <UserButton
                             appearance={{

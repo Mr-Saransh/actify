@@ -1,8 +1,5 @@
-
-"use client";
-
 import { EnforcementMetrics } from "@/lib/metrics";
-import { Gauge, AlertOctagon, TrendingUp, ShieldCheck } from "lucide-react";
+import { Gauge, TrendingUp, ShieldCheck, ShieldAlert, Activity } from "lucide-react";
 
 interface RiskForecastProps {
     metrics: EnforcementMetrics;
@@ -13,59 +10,80 @@ export function RiskForecast({ metrics }: RiskForecastProps) {
     const isCaution = metrics.failureMargin === 'CAUTION';
 
     return (
-        <div className="bg-card border border-border rounded-lg p-3 md:p-4 font-mono text-sm h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-3 md:mb-4 text-muted-foreground font-bold uppercase tracking-widest border-b border-border pb-2">
-                <Gauge className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Risk Forecast</span>
+        <div className="relative overflow-hidden bg-card/60 backdrop-blur-xl border border-border rounded-2xl p-5 md:p-6 font-sans flex flex-col justify-between group hover:border-blue-500/50 transition-all duration-500 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)]">
+            
+            <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-4 relative z-10">
+                <div className="flex items-center gap-2 text-blue-500">
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                        <Gauge className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-widest">Risk Forecast</span>
+                </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-6 relative z-10 flex-1 flex flex-col justify-center">
                 {/* Status Banner */}
                 <div className={`
-                    p-3 rounded border text-center uppercase font-bold tracking-widest text-xs
-                    ${isDanger ? 'bg-destructive/10 border-destructive text-destructive animate-pulse' :
-                        isCaution ? 'bg-yellow-500/10 border-yellow-500 text-yellow-600' :
-                            'bg-green-500/10 border-green-500 text-green-600'}
+                    p-4 rounded-xl border text-center uppercase font-bold tracking-widest text-[10px] sm:text-xs transition-all duration-500 shadow-inner
+                    ${isDanger ? 'bg-destructive/10 border-destructive/30 text-destructive shadow-[inset_0_0_20px_rgba(239,68,68,0.2)]' :
+                        isCaution ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 shadow-[inset_0_0_20px_rgba(245,158,11,0.2)]' :
+                            'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-[inset_0_0_20px_rgba(16,185,129,0.2)]'}
                 `}>
-                    {isDanger ? 'CRITICAL RISK - FAILURE IMMINENT' :
-                        isCaution ? 'CAUTION - BUFFER THIN' :
-                            'SYSTEM NOMINAL - ON TRACK'}
+                    <div className="flex items-center justify-center gap-2">
+                        {isDanger && <ShieldAlert className="w-4 h-4 animate-pulse" />}
+                        {isCaution && <Activity className="w-4 h-4 animate-pulse" />}
+                        {!isDanger && !isCaution && <ShieldCheck className="w-4 h-4" />}
+                        <span>
+                            {isDanger ? 'CRITICAL RISK - FAILURE IMMINENT' :
+                                isCaution ? 'CAUTION - BUFFER THIN' :
+                                    'SYSTEM NOMINAL - ON TRACK'}
+                        </span>
+                    </div>
                 </div>
 
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1 mb-1">
-                            <ShieldCheck className="h-3 w-3" /> Buffer
+                    <div className="flex flex-col">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1 mb-2">
+                            <ShieldCheck className="h-3 w-3 text-blue-500" /> Buffer
                         </p>
-                        <p className={`text-xl font-bold ${metrics.bufferDays < 0 ? 'text-destructive' : 'text-foreground'}`}>
-                            {metrics.bufferDays > 0 ? '+' : ''}{metrics.bufferDays} <span className="text-xs font-normal text-muted-foreground">Days</span>
-                        </p>
+                        <div className="flex items-baseline gap-1">
+                            <span className={`text-3xl font-bold font-mono ${metrics.bufferDays < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                                {metrics.bufferDays > 0 ? '+' : ''}{metrics.bufferDays}
+                            </span>
+                            <span className="text-xs font-mono text-muted-foreground uppercase">Days</span>
+                        </div>
                     </div>
 
-                    <div>
-                        <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1 mb-1">
-                            <TrendingUp className="h-3 w-3" /> 7-Day Rate
+                    <div className="flex flex-col">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1 mb-2">
+                            <TrendingUp className="h-3 w-3 text-blue-500" /> 7-Day Rate
                         </p>
-                        <p className="text-xl font-bold text-foreground">
-                            {metrics.onTimeRate7Days}% <span className="text-xs font-normal text-muted-foreground">On Time</span>
-                        </p>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold font-mono text-foreground">
+                                {metrics.onTimeRate7Days}%
+                            </span>
+                            <span className="text-xs font-mono text-muted-foreground uppercase">On Time</span>
+                        </div>
                     </div>
                 </div>
 
                 {/* 7 Day Execution Count */}
-                <div className="pt-2 border-t border-border">
-                    <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground uppercase">Recent Activity</span>
-                        <span className="text-foreground font-bold">{metrics.daysExecuted7Days} <span className="text-muted-foreground">/ 7 Days</span></span>
+                <div className="pt-4 border-t border-border/50 group/recent">
+                    <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest group-hover/recent:text-foreground transition-colors">Recent Activity</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-bold font-mono text-foreground">{metrics.daysExecuted7Days}</span>
+                            <span className="text-xs font-mono text-muted-foreground">/ 7 Days</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Analysis Footer */}
-            <div className="pt-4 mt-auto border-t border-border">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest block mb-1">System Audit</span>
-                <p className={`text-xs italic ${isDanger ? 'text-destructive/80' : isCaution ? 'text-yellow-500/80' : 'text-green-500/80'}`}>
+            <div className="pt-4 mt-6 border-t border-border/50 relative z-10">
+                <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest block mb-2 font-bold">System Audit</span>
+                <p className={`text-xs font-medium leading-relaxed italic border-l-2 pl-3 py-1 ${isDanger ? 'text-destructive/80 border-destructive/30' : isCaution ? 'text-amber-500/80 border-amber-500/30' : 'text-emerald-500/80 border-emerald-500/30'}`}>
                     "{isDanger
                         ? "Buffer depleted. Probability of failure near certainty without immediate correction."
                         : isCaution
@@ -74,6 +92,6 @@ export function RiskForecast({ metrics }: RiskForecastProps) {
                     }"
                 </p>
             </div>
-        </div >
+        </div>
     );
 }

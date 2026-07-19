@@ -20,6 +20,7 @@ import { DailyStatusBadge } from "@/components/daily-status-badge";
 import { PowerUpDisplay } from "@/components/power-up-display";
 import { Target, CheckCircle, AlertTriangle } from "lucide-react";
 import { GenerateTaskButton } from "@/components/generate-task-button";
+import Link from "next/link";
 
 
 export default async function DashboardPage() {
@@ -40,11 +41,11 @@ export default async function DashboardPage() {
 
     const failureDetected = enforcementFailure || deadlineFailure;
 
-    // Fetch active goal with ALL tasks for the map
+    // Fetch active or approved goal
     const activeGoal = await prisma.goal.findFirst({
         where: {
             userId: user.id,
-            status: "ACTIVE",
+            status: { in: ["ACTIVE", "APPROVED"] as any },
         },
         include: {
             tasks: {
@@ -53,6 +54,10 @@ export default async function DashboardPage() {
             }
         },
     });
+
+    if ((activeGoal?.status as any) === "APPROVED") {
+        redirect("/dashboard/mission/overview");
+    }
 
     if (!activeGoal) {
         return (
@@ -96,7 +101,10 @@ export default async function DashboardPage() {
                     <div className="w-full">
                         <GoalIntelligence goal={activeGoal as any} />
                     </div>
-                    <div className="flex items-center justify-end gap-2 px-1">
+                    <div className="flex flex-wrap items-center justify-end gap-2 px-1">
+                        <Link href="/dashboard/mission/overview" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-primary border border-primary/20 bg-primary/5 px-3 py-1.5 rounded-md hover:bg-primary/10 transition-colors flex items-center gap-1">
+                            Blueprint
+                        </Link>
                         <PowerUpDisplay />
                         <DailyStatusBadge />
                     </div>

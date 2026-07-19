@@ -1,15 +1,21 @@
+import { CommunityClient } from "./community-client";
+import { getOrCreateUser } from "@/app/actions/user";
+import { getNetworkData } from "@/app/actions/network";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { getOrCreateUser } from "@/app/actions/user";
-import { CommunityClient } from "./community-client";
-
 export default async function CommunityPage() {
     const user = await getOrCreateUser();
+    if (!user) return null;
 
-    if (!user) {
-        return <div className="flex items-center justify-center h-full text-muted-foreground">Authenticating...</div>;
-    }
+    const networkRes = await getNetworkData();
+    const networkData = networkRes.success && networkRes.data ? networkRes.data : {
+        pendingReceived: [],
+        pendingSent: [],
+        recentConnections: [],
+        allFriends: []
+    };
 
-    return <CommunityClient currentUserId={user.id} />;
+    return <CommunityClient currentUserId={user.id} networkData={networkData} />;
 }

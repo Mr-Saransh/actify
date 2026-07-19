@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         correctAnswers.forEach((ans: any) => {
             const userAns = userAnswers.find((ua: any) => ua.id === ans.id);
             if (userAns && userAns.answer === ans.answer) {
-                score += 10; // 10 questions * 10 points = 100 max
+                score += 20; // 5 questions * 20 points = 100 max
             }
         });
 

@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 interface QuizPageProps {
-    params: {
+    params: Promise<{
         proofId: string;
-    }
+    }>
 }
 
 export default async function QuizPage({ params }: QuizPageProps) {
-    const proofId = params.proofId;
+    const { proofId } = await params;
 
     const proof = await prisma.proof.findUnique({
         where: { id: proofId },

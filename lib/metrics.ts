@@ -47,11 +47,14 @@ export function calculateEnforcementMetrics(
     let probability = 95 - (failedTasks * 12);
 
     // Delay penalty: If behind schedule, drop probability
-    const daysBehind = Math.max(0, Math.ceil((tasksRemaining / executionSpeed) - daysRemaining));
-    if (!isFinite(daysBehind)) {
-        // If speed is 0, we can't calc days behind properly, assume 1 day if > 1 day passed
-        if (dayDiff > 1 && completedTasks === 0) probability -= 10;
-    } else {
+    let daysBehind = 0;
+    if (executionSpeed > 0) {
+        daysBehind = Math.max(0, Math.ceil((tasksRemaining / executionSpeed) - daysRemaining));
+    } else if (dayDiff > 1 && completedTasks === 0) {
+        daysBehind = dayDiff - 1;
+    }
+
+    if (daysBehind > 0) {
         probability -= (daysBehind * 5);
     }
 
@@ -77,9 +80,14 @@ export function calculateEnforcementMetrics(
     const onTimeRate7Days = totalAttempted7Days > 0 ? (acceptedLast7Days / totalAttempted7Days) * 100 : 100;
 
     // Buffer Days & Failure Margin
-    // Buffer = (Available Days to Deadline) - (Days needed at Current Speed)
-    // If executionSpeed is high, buffer is positive.
-    const daysNeeded = executionSpeed > 0 ? tasksRemaining / executionSpeed : 999;
+    let daysNeeded = 0;
+    if (executionSpeed > 0) {
+        daysNeeded = tasksRemaining / executionSpeed;
+    } else if (dayDiff <= 1 && completedTasks === 0) {
+        daysNeeded = tasksRemaining / requiredSpeed;
+    } else {
+        daysNeeded = 999;
+    }
     const bufferDays = Math.round(daysRemaining - daysNeeded);
 
     let failureMargin: EnforcementMetrics['failureMargin'] = 'SAFE';

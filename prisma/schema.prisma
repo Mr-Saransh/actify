@@ -48,6 +48,9 @@ model User {
   marketplaceItems   MarketplaceListing[]
   sentMessages       Message[] @relation("SentMessages")
   receivedMessages   Message[] @relation("ReceivedMessages")
+  sentRequests       FriendRequest[] @relation("SentRequests")
+  receivedRequests   FriendRequest[] @relation("ReceivedRequests")
+  notifications      Notification[]
 }
 
 model Goal {
@@ -147,6 +150,7 @@ enum GoalType {
 }
 
 enum GoalStatus {
+  APPROVED
   ACTIVE
   COMPLETED
   FAILED
@@ -193,4 +197,42 @@ model Message {
   
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model FriendRequest {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender     User     @relation("SentRequests", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
+  
+  @@unique([senderId, receiverId])
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  type       NotificationType
+  content    String
+  read       Boolean  @default(false)
+  relatedId  String?  
+  createdAt  DateTime @default(now())
+  
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  REQUEST_ACCEPTED
+  SYSTEM
 }

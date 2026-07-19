@@ -37,14 +37,14 @@ export async function POST(req: NextRequest) {
 
         // 3. Generate MCQs using AI
         const prompt = `
-            You are an expert examiner. Generate exactly 10 Multiple Choice Questions (MCQs) to test the user's knowledge based on their submission.
+            You are an expert examiner. Generate exactly 5 Multiple Choice Questions (MCQs) to test the user's knowledge based on their submission.
             
             **Goal**: ${proof.task.goal.title}
             **Task Objective**: ${proof.task.objective || proof.task.title}
             **User Explanation**: ${proof.explanation}
             
             Rules:
-            1. Return exactly 10 questions.
+            1. Return exactly 5 questions.
             2. Each question must have exactly 4 options.
             3. The correct answer must be one of the options.
             4. Make it challenging but fair.

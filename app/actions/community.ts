@@ -11,6 +11,20 @@ export async function sendMessage(receiverId: string, content: string) {
     if (!content.trim()) return { success: false, message: "Message cannot be empty." };
 
     try {
+        const isFriend = await prisma.friendRequest.findFirst({
+            where: {
+                status: "ACCEPTED",
+                OR: [
+                    { senderId: user.id, receiverId },
+                    { senderId: receiverId, receiverId: user.id }
+                ]
+            }
+        });
+
+        if (!isFriend) {
+            return { success: false, message: "You can only message accepted friends." };
+        }
+
         await prisma.message.create({
             data: {
                 senderId: user.id,
@@ -43,8 +57,8 @@ export async function getConversations() {
         });
 
         const otherUserIds = Array.from(new Set([
-            ...sentTo.map(m => m.receiverId),
-            ...receivedFrom.map(m => m.senderId)
+            ...sentTo.map((m: any) => m.receiverId),
+            ...receivedFrom.map((m: any) => m.senderId)
         ]));
 
         if (otherUserIds.length === 0) {
