@@ -205,3 +205,95 @@ export async function purchaseListing(listingId: string) {
         return { success: false, message: "Transaction failed" };
     }
 }
+
+export async function updateListing(id: string, data: { title?: string; description?: string; price?: number; category?: string; imageUrl?: string | null }) {
+    const user = await getOrCreateUser();
+    if (!user) return { success: false, message: "Unauthorized" };
+
+    try {
+        const listing = await prisma.marketplaceListing.findUnique({ where: { id } });
+        if (!listing) return { success: false, message: "Listing not found" };
+        if (listing.sellerId !== user.id) return { success: false, message: "Unauthorized" };
+
+        await prisma.marketplaceListing.update({
+            where: { id },
+            data: {
+                ...(data.title && { title: data.title }),
+                ...(data.description && { description: data.description }),
+                ...(data.price !== undefined && { price: data.price }),
+                ...(data.category && { category: data.category }),
+                ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
+            } as any
+        });
+
+        revalidatePath("/dashboard/marketplace");
+        revalidatePath(`/dashboard/marketplace/${id}`);
+        return { success: true, message: "Listing updated successfully!" };
+    } catch (error) {
+        console.error("Update listing error:", error);
+        return { success: false, message: "Failed to update listing" };
+    }
+}
+
+export async function deleteListing(id: string) {
+    const user = await getOrCreateUser();
+    if (!user) return { success: false, message: "Unauthorized" };
+
+    try {
+        const listing = await prisma.marketplaceListing.findUnique({ where: { id } });
+        if (!listing) return { success: false, message: "Listing not found" };
+        if (listing.sellerId !== user.id) return { success: false, message: "Unauthorized" };
+
+        await prisma.marketplaceListing.delete({ where: { id } });
+
+        revalidatePath("/dashboard/marketplace");
+        return { success: true, message: "Listing deleted successfully!" };
+    } catch (error) {
+        console.error("Delete listing error:", error);
+        return { success: false, message: "Failed to delete listing" };
+    }
+}
+
+export async function addReview(listingId: string, rating: number, comment: string) {
+    const user = await getOrCreateUser();
+    if (!user) return { success: false, message: "Unauthorized" };
+
+    if (rating < 1 || rating > 5) {
+        return { success: false, message: "Rating must be between 1 and 5" };
+    }
+    if (!comment || comment.trim() === "") {
+        return { success: false, message: "Comment cannot be empty" };
+    }
+
+    try {
+        const existingReview = await (prisma as any).review.findFirst({
+            where: { listingId, userId: user.id }
+        });
+        
+        if (existingReview) {
+            return { success: false, message: "You have already reviewed this product." };
+        }
+        const pointsEarned = rating >= 4 ? 2 : 1;
+        
+        await prisma.$transaction([
+            (prisma as any).review.create({
+                data: {
+                    listingId,
+                    userId: user.id,
+                    rating,
+                    comment
+                }
+            }),
+            prisma.user.update({
+                where: { id: user.id },
+                data: { actPoints: { increment: pointsEarned } }
+            })
+        ]);
+        revalidatePath(`/dashboard/marketplace/${listingId}`);
+        revalidatePath("/dashboard/marketplace");
+        return { success: true, message: `Review added successfully! You earned ${pointsEarned} ACT points.` };
+    } catch (error) {
+        console.error("Add review error:", error);
+        return { success: false, message: "Failed to add review" };
+    }
+}

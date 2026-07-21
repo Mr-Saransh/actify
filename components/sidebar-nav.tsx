@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Target, History, Settings, Trophy,
-    ShoppingBag, User, MessageCircle, BarChart2, Store
+    ShoppingBag, User, MessageCircle, Store, Users
 } from "lucide-react";
 
 interface NavItemProps {
@@ -44,8 +44,8 @@ const mainNav = [
 
 const secondaryNav = [
     { href: "/dashboard/profile", icon: User, label: "Profile" },
-    { href: "/dashboard/community", icon: MessageCircle, label: "Community" },
-    { href: "/dashboard/analytics", icon: BarChart2, label: "Analytics" },
+    { href: "/dashboard/network", icon: Users, label: "Network" },
+    { href: "/dashboard/chat", icon: MessageCircle, label: "Chat" },
 ];
 
 export function SidebarNav() {

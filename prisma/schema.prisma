@@ -51,6 +51,9 @@ model User {
   sentRequests       FriendRequest[] @relation("SentRequests")
   receivedRequests   FriendRequest[] @relation("ReceivedRequests")
   notifications      Notification[]
+  reviews            Review[]
+  groupMembers       GroupMember[]
+  groupMessages      GroupMessage[]
 }
 
 model Goal {
@@ -186,6 +189,7 @@ model MarketplaceListing {
   updatedAt   DateTime @updatedAt
 
   seller      User     @relation(fields: [sellerId], references: [id])
+  reviews     Review[]
 }
 
 model Message {
@@ -235,4 +239,52 @@ enum NotificationType {
   FRIEND_REQUEST
   REQUEST_ACCEPTED
   SYSTEM
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int
+  comment     String
+  listingId   String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listing     MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  
+  members     GroupMember[]
+  messages    GroupMessage[]
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  role      String   @default("MEMBER") // ADMIN, MEMBER
+  joinedAt  DateTime @default(now())
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([groupId, userId])
+}
+
+model GroupMessage {
+  id        String   @id @default(uuid())
+  groupId   String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender    User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

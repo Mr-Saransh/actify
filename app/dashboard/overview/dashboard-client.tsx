@@ -3,6 +3,7 @@
 import { Star, Coins, Trophy, Flame, Target, CheckSquare, Upload, Plus, Zap, TrendingUp } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import Link from "next/link";
+import Image from "next/image";
 
 interface DashboardClientProps {
     user: {
@@ -89,14 +90,14 @@ export function DashboardClient({ user, activeGoal, stats, weeklyData, heatmapDa
                 <StatCard
                     label="ACT Points"
                     value={user.actPoints.toLocaleString()}
-                    icon={<Star className="w-4 h-4" />}
+                    icon={<Image src="/act-points.png" alt="Points" width={24} height={24} unoptimized />}
                     color="var(--primary)"
                     delta="Reputation score"
                 />
                 <StatCard
                     label="ACT Currency"
                     value={user.actCurrency.toLocaleString()}
-                    icon={<Coins className="w-4 h-4" />}
+                    icon={<Image src="/act-currency.jpg" alt="Currency" width={32} height={14} unoptimized className="object-contain" />}
                     color="#10b981"
                     delta="Spendable balance"
                 />

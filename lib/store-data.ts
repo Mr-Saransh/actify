@@ -16,7 +16,7 @@ export const STORE_ITEMS: StoreItem[] = [
         cost: 15,
         category: "POWER-UP",
         action: "FREEZE",
-        icon: "❄️"
+        icon: "/liquid-freeze.png"
     },
     {
         id: "beyond-1",
@@ -25,7 +25,7 @@ export const STORE_ITEMS: StoreItem[] = [
         cost: 10,
         category: "POWER-UP",
         action: "BEYOND",
-        icon: "⚡"
+        icon: "/beyond-act.png"
     },
     {
         id: "res-1",
@@ -34,7 +34,7 @@ export const STORE_ITEMS: StoreItem[] = [
         cost: 250,
         category: "RESOURCE",
         action: "NONE",
-        icon: "🎨"
+        icon: "/uiux_starter_kit.png"
     },
     {
         id: "res-2",
@@ -43,7 +43,7 @@ export const STORE_ITEMS: StoreItem[] = [
         cost: 400,
         category: "RESOURCE",
         action: "NONE",
-        icon: "📐"
+        icon: "/system_design_guide.png"
     },
     {
         id: "merch-1",
@@ -52,7 +52,7 @@ export const STORE_ITEMS: StoreItem[] = [
         cost: 1200,
         category: "MERCH",
         action: "NONE",
-        icon: "🖱️"
+        icon: "/execution_mousepad.png"
     },
     {
         id: "merch-2",
@@ -61,6 +61,6 @@ export const STORE_ITEMS: StoreItem[] = [
         cost: 2500,
         category: "MERCH",
         action: "NONE",
-        icon: "👕"
+        icon: "/actify_hoodie.png"
     }
 ];

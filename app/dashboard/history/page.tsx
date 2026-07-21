@@ -41,7 +41,7 @@ export default async function HistoryPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-12">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card border border-border p-5 rounded-2xl animate-slide-up">
+            <div className="sticky top-0 md:top-4 z-30 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-background/95 backdrop-blur-xl border border-border p-5 rounded-2xl animate-slide-up shadow-sm">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                         <History className="w-6 h-6 text-primary" />
@@ -93,7 +93,7 @@ export default async function HistoryPage() {
             )}
 
             {/* Timeline */}
-            <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent pt-4 mt-8">
+            <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent pt-4 mt-8">
                 {allTasks.length === 0 ? (
                     <div className="text-center py-12 relative z-10 bg-background/80 backdrop-blur-sm rounded-xl">
                         <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -105,9 +105,9 @@ export default async function HistoryPage() {
                     const isRejected = task.state === 'REJECTED';
                     
                     return (
-                        <div key={task.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group animate-slide-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                        <div key={task.id} className="relative flex items-start gap-4 group animate-slide-up" style={{ animationDelay: `${i * 0.05}s` }}>
                             {/* Marker */}
-                            <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_0_4px_var(--background)] z-10 ${
+                            <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-background shrink-0 shadow-[0_0_0_4px_var(--background)] z-10 ${
                                 isAccepted ? 'text-emerald-500' : isRejected ? 'text-amber-500' : 'text-destructive'
                             }`}>
                                 {isAccepted ? <CheckCircle className="w-5 h-5 fill-current text-background" /> : 
@@ -116,7 +116,7 @@ export default async function HistoryPage() {
                             </div>
 
                             {/* Card */}
-                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-border bg-card card-hover">
+                            <div className="flex-1 min-w-0 p-4 rounded-xl border border-border bg-card card-hover">
                                 <div className="flex items-center justify-between mb-2">
                                     <Badge variant="outline" className={`text-[10px] uppercase tracking-widest ${
                                         isAccepted ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5' : 
@@ -125,7 +125,7 @@ export default async function HistoryPage() {
                                     }`}>
                                         {task.state}
                                     </Badge>
-                                    <span className="text-xs text-muted-foreground font-medium">
+                                    <span className="text-xs text-muted-foreground font-medium whitespace-nowrap ml-2">
                                         {new Date(task.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                     </span>
                                 </div>

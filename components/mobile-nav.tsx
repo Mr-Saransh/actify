@@ -75,13 +75,13 @@ export function MobileNav() {
             </SheetTrigger>
             <SheetContent side="left" className="w-72 bg-sidebar border-r border-sidebar-border p-0 text-sidebar-foreground">
                 <SheetHeader className="px-5 pt-6 pb-4 border-b border-sidebar-border text-left">
-                    <div className="relative w-28 h-7">
+                    <div className="relative w-36 h-10">
                         <Image
-                            src="/actify-logo.png"
+                            src="/brand-logo.png"
                             alt="ACTIFY"
                             fill
+                            unoptimized
                             className="object-contain object-left"
-                            style={{ filter: 'brightness(0) invert(1)' }}
                             priority
                         />
                     </div>

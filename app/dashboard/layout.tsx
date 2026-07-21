@@ -36,13 +36,13 @@ export default async function DashboardLayout({
                 {/* Logo */}
                 <div className="px-5 pt-6 pb-4 border-b border-sidebar-border">
                     <div className="flex items-center gap-2.5">
-                        <div className="relative w-28 h-7">
+                        <div className="relative w-36 h-10">
                             <Image
-                                src="/actify-logo.png"
+                                src="/brand-logo.png"
                                 alt="ACTIFY"
                                 fill
+                                unoptimized
                                 className="object-contain object-left"
-                                style={{ filter: 'brightness(0) invert(1)' }}
                                 priority
                             />
                         </div>
@@ -68,13 +68,13 @@ export default async function DashboardLayout({
                     {/* Mobile: Menu + Logo */}
                     <div className="md:hidden flex items-center gap-3">
                         <MobileNav />
-                        <div className="relative w-20 h-6">
+                        <div className="relative w-28 h-8">
                             <Image
-                                src="/actify-logo.png"
+                                src="/brand-logo.png"
                                 alt="ACTIFY"
                                 fill
+                                unoptimized
                                 className="object-contain object-left"
-                                style={{ filter: 'brightness(0) invert(1)' }}
                                 priority
                             />
                         </div>

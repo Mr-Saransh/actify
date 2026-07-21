@@ -85,10 +85,10 @@ export function RiskForecast({ metrics }: RiskForecastProps) {
                 <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest block mb-2 font-bold">System Audit</span>
                 <p className={`text-xs font-medium leading-relaxed italic border-l-2 pl-3 py-1 ${isDanger ? 'text-destructive/80 border-destructive/30' : isCaution ? 'text-amber-500/80 border-amber-500/30' : 'text-emerald-500/80 border-emerald-500/30'}`}>
                     "{isDanger
-                        ? "Buffer depleted. Probability of failure near certainty without immediate correction."
+                        ? "You have fallen behind schedule. You must complete tasks immediately to avoid failing."
                         : isCaution
-                            ? "Buffer verifying thin. Minor deviation will result in critical path failure."
-                            : "Buffer verified. Operational contingencies available."
+                            ? "You are very close to falling behind schedule. Try to complete a task soon."
+                            : "You have plenty of time. Keep up the good work!"
                     }"
                 </p>
             </div>

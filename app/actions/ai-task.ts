@@ -42,7 +42,6 @@ export async function generateNextTask(goalId: string) {
 
     if (!goal) throw new Error("Goal not found");
 
-    // Check Daily Limit
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -54,11 +53,21 @@ export async function generateNextTask(goalId: string) {
         }
     });
 
-    const hasBeyondAct = ((user as any).beyondActCount || 0) > 0;
-    const dailyLimit = hasBeyondAct ? 6 : 3;
+    const { calculateEnforcementMetrics } = await import("@/lib/metrics");
+    const metrics = calculateEnforcementMetrics(user as any, goal as any);
+    const beyondActCount = (user as any).beyondActCount || 0;
+    const baseDailyLimit = metrics.dailyLimit - beyondActCount;
 
-    if (tasksCompletedToday >= dailyLimit) {
-        return { success: false, limitReached: true, message: `Daily capacity reached (${tasksCompletedToday}/${dailyLimit}).` };
+    if (tasksCompletedToday >= metrics.dailyLimit) {
+        return { success: false, limitReached: true, message: `Daily capacity reached (${tasksCompletedToday}/${metrics.dailyLimit}).` };
+    }
+
+    // Consume a Beyond ACT power-up if they are exceeding their base daily limit
+    if (tasksCompletedToday >= baseDailyLimit && beyondActCount > 0) {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { beyondActCount: { decrement: 1 } } as any
+        });
     }
 
     // Identify Current Milestone
@@ -182,14 +191,6 @@ export async function generateNextTask(goalId: string) {
                 state: "ACTIVE"
             } as any
         });
-
-        // Optionally, check if this task consumes Beyond ACT logic
-        if (tasksCompletedToday === 3 && hasBeyondAct) {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { beyondActCount: { decrement: 1 } } as any
-            });
-        }
 
         revalidatePath("/dashboard");
         return { success: true, task: newTask };

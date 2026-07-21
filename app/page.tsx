@@ -15,7 +15,6 @@ export default function Home() {
                         alt="ACTIFY"
                         fill
                         className="object-contain object-left"
-                        style={{ filter: 'brightness(0) invert(1)' }}
                         priority
                     />
                 </div>
@@ -143,7 +142,7 @@ export default function Home() {
                         width={80}
                         height={20}
                         className="object-contain"
-                        style={{ filter: 'brightness(0) invert(1)', opacity: 0.5 }}
+                        style={{ opacity: 0.5 }}
                     />
                 </div>
                 <p>© {new Date().getFullYear()} ACTIFY Execution OS. All rights reserved.</p>

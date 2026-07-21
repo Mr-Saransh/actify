@@ -74,8 +74,8 @@ export function EnforcementStats({ metrics }: EnforcementStatsProps) {
                 <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest block mb-2 font-bold">Efficiency Analysis</span>
                 <p className={`text-xs font-medium leading-relaxed italic border-l-2 pl-3 py-1 ${isBehind ? 'text-destructive/80 border-destructive/30' : 'text-emerald-500/80 border-emerald-500/30'}`}>
                     "{isBehind
-                        ? "Velocity critical. Current pace insufficient to meet deadline. Increase daily output immediately."
-                        : "Pace nominal. Maintenance of current velocity projected to result in successful completion."
+                        ? "You are falling behind your required pace. Please complete more tasks to catch up."
+                        : "You are doing great! Keep up this pace to successfully hit your goal on time."
                     }"
                 </p>
             </div>

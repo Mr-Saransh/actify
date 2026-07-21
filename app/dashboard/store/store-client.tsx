@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { Coins, Zap, Package, BookOpen, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -27,14 +28,22 @@ function StoreSection({ title, icon: Icon, items, onPurchase, isPending }: {
                 {items.map((item, i) => (
                     <div key={item.id} className="rounded-xl border border-border bg-card p-5 card-hover flex flex-col" style={{ animationDelay: `${i * 0.1}s` }}>
                         <div className="mb-3">
-                            <span className="text-3xl mb-2 block">{item.icon}</span>
+                            <span className="mb-4 block">
+                                {item.icon.startsWith('/') ? (
+                                    <div className="relative w-full h-32 md:h-40 bg-background/50 rounded-lg overflow-hidden border border-border/50">
+                                        <Image src={item.icon} alt={item.name} fill className="object-contain p-2" />
+                                    </div>
+                                ) : (
+                                    <span className="text-3xl">{item.icon}</span>
+                                )}
+                            </span>
                             <h3 className="font-bold text-base leading-tight mb-1">{item.name}</h3>
                             <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
                         </div>
                         
                         <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
-                            <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-500 px-2 py-1 rounded-md border border-amber-500/20">
-                                <Coins className="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 px-2 py-1 rounded-md border border-amber-500/20">
+                                <Image src="/act-currency.jpg" alt="ACT Currency" width={28} height={12} unoptimized className="object-contain" />
                                 <span className="text-sm font-bold tabular-nums">{item.cost}</span>
                             </div>
                             <Button 
@@ -80,8 +89,8 @@ export function StoreClient({ actCurrency, powerUps, merch, resources }: StoreCl
                 <div className="flex items-center gap-3 shrink-0">
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Balance</span>
-                        <div className="flex items-center gap-1.5 text-amber-500">
-                            <Coins className="w-5 h-5" />
+                        <div className="flex items-center gap-2 text-amber-500">
+                            <Image src="/act-currency.jpg" alt="ACT Currency" width={40} height={18} unoptimized className="object-contain" />
                             <span className="text-2xl font-bold tabular-nums">{actCurrency.toLocaleString()}</span>
                         </div>
                     </div>
