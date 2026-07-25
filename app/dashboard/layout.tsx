@@ -1,18 +1,12 @@
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
-import Link from "next/link";
-import {
-    LayoutDashboard, Target, History, Settings, Trophy,
-    ShoppingBag, User, MessageCircle, BarChart2, Store, Bell
-} from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { MobileNav } from "@/components/mobile-nav";
 import { ActCurrencyDisplay } from "@/components/act-currency-display";
 import { BottomNav } from "@/components/bottom-nav";
 import { getOrCreateUser } from "@/app/actions/user";
-import { prisma } from "@/lib/prisma";
-import { SidebarNav } from "@/components/sidebar-nav";
 import { NotificationBell } from "@/components/notification-bell";
+import { DesktopSidebar } from "@/components/desktop-sidebar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,36 +24,9 @@ export default async function DashboardLayout({
     }
 
     return (
-        <div className="flex h-screen bg-background text-foreground font-sans selection:bg-primary/30">
+        <div className="flex h-[100dvh] bg-background text-foreground font-sans selection:bg-primary/30">
             {/* Sidebar (Desktop) */}
-            <aside className="w-[260px] border-r border-sidebar-border bg-sidebar hidden md:flex flex-col">
-                {/* Logo */}
-                <div className="px-5 pt-6 pb-4 border-b border-sidebar-border">
-                    <div className="flex items-center gap-2.5">
-                        <div className="relative w-36 h-10">
-                            <Image
-                                src="/brand-logo.png"
-                                alt="ACTIFY"
-                                fill
-                                unoptimized
-                                className="object-contain object-left"
-                                priority
-                            />
-                        </div>
-                    </div>
-                    <p className="text-[10px] text-sidebar-foreground/40 font-medium tracking-widest uppercase mt-2">Execution OS</p>
-                </div>
-
-                {/* Navigation */}
-                <SidebarNav />
-
-                {/* Footer */}
-                <div className="p-4 border-t border-sidebar-border mt-auto">
-                    <p className="text-[10px] text-sidebar-foreground/30 font-medium text-center tracking-wider">
-                        ACTIFY v2.0
-                    </p>
-                </div>
-            </aside>
+            <DesktopSidebar />
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col overflow-hidden bg-background">

@@ -8,7 +8,6 @@ import { revalidatePath } from "next/cache";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Schema definitions matching our requirements
 const MilestoneSchema = z.object({
     id: z.string().optional(), // For UI tracking
     title: z.string(),
@@ -18,21 +17,34 @@ const MilestoneSchema = z.object({
 });
 
 const MissionPlanSchema = z.object({
-    name: z.string().describe("e.g., Fast Track, Balanced, Deep Learning"),
+    name: z.string().describe("Must be exactly 'Execution Sprint', 'Strategic Execution', or 'Mastery Protocol'"),
     estimatedHours: z.number(),
     difficulty: z.string(),
     successProbability: z.number().min(0).max(100),
+    probabilityExplanation: z.string().describe("Short explanation of why this probability was assigned based on the timeline and scope"),
     commitment: z.string(),
     risks: z.array(z.string()),
     milestones: z.array(MilestoneSchema),
 });
 
+const AnalysisSchema = z.object({
+    availableHours: z.number().describe("Calculated from user's deadline and daily time"),
+    minimumHours: z.number().describe("Absolute minimum hours needed for basic proficiency"),
+    recommendedHours: z.number().describe("Realistic hours needed for a standard achievement"),
+    masteryHours: z.number().describe("Hours needed for genuine mastery without compromises"),
+    feasibility: z.string().describe("Evaluation of whether the user's deadline is realistic"),
+    constraints: z.string().describe("Major constraints based on available time"),
+    recommendations: z.string().describe("Overarching recommendations based on the analysis"),
+});
+
 const MultiplePlansResponseSchema = z.object({
+    analysis: AnalysisSchema,
     plans: z.array(MissionPlanSchema).length(3), // Exactly 3 plans
 });
 
 export type MissionPlan = z.infer<typeof MissionPlanSchema>;
 export type MilestonePlan = z.infer<typeof MilestoneSchema>;
+export type MissionAnalysis = z.infer<typeof AnalysisSchema>;
 
 export async function generateMissionPlans(
     statement: string,
@@ -45,19 +57,54 @@ export async function generateMissionPlans(
     const user = await getOrCreateUser();
     if (!user) throw new Error("Unauthorized");
 
+    // Calculate Available Hours
+    const deadlineDate = new Date(deadline);
+    const today = new Date();
+    // Default to at least 1 day to avoid 0 hours
+    const availableDays = Math.max(1, Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+    const availableHours = Math.floor((availableDays * timePerDay) / 60);
+
     const prompt = `
-        You are an expert Execution Strategist.
-        Generate exactly 3 mission plans (Fast Track, Balanced, Deep Learning) for the following Goal:
+        You are an expert Execution Strategist for the ACTIFY system.
+        Generate exactly 3 distinct mission blueprints for the user's goal.
         
+        **User Parameters:**
         Goal Statement: ${statement}
         Category: ${category}
-        Deadline: ${deadline}
+        Deadline: ${deadline} (approx ${availableDays} days from now)
         Time Available Per Day: ${timePerDay} minutes
+        Calculated Total Available Hours: ${availableHours} hours
         Experience Level: ${experienceLevel}
         Description: ${description}
 
-        For each plan, provide the estimated total hours, difficulty, success probability, commitment required, potential risks, and a list of structured milestones.
-        Make sure the milestones are actionable and logical.
+        **Mission Analysis Required:**
+        First, perform a Mission Analysis comparing the user's Available Hours (${availableHours}h) to realistic time requirements for this goal. Estimate minimum, recommended, and mastery hours based on industry standards. Evaluate feasibility and provide constraints and recommendations.
+
+        **Blueprint Generation Rules:**
+        Generate exactly 3 plans in this exact order and philosophy:
+
+        1. Execution Sprint (Blueprint 1)
+        - MUST strictly respect the user's deadline (${deadline}) and available hours (${availableHours}h).
+        - Never extend the timeline. 
+        - If the requested goal cannot realistically be completed within the available time, heavily reduce the scope to what is actually possible. Provide a MVP/core version of the goal.
+        - Name MUST be exactly "Execution Sprint".
+
+        2. Strategic Execution (Blueprint 2)
+        - IGNORE the user's deadline.
+        - Recommend the ideal, practical timeline and scope required to genuinely achieve the user's original goal.
+        - This should represent the most realistic and balanced approach.
+        - Name MUST be exactly "Strategic Execution".
+
+        3. Mastery Protocol (Blueprint 3)
+        - IGNORE the user's deadline completely.
+        - Design a roadmap for genuine mastery of the subject. No compromises.
+        - Include advanced concepts, deep dives, best practices, and rigorous portfolio-quality work.
+        - Name MUST be exactly "Mastery Protocol".
+
+        **Success Probability Logic:**
+        - Execution Sprint: Chance of completing the *reduced scope* within the tight deadline. Explain why.
+        - Strategic Execution: Chance of completing the recommended roadmap. Usually the highest probability because it's realistic. Explain why.
+        - Mastery Protocol: Chance of reaching genuine mastery. Naturally lower due to the massive commitment required. Explain why.
     `;
 
     try {
@@ -69,6 +116,19 @@ export async function generateMissionPlans(
                 responseSchema: {
                     type: "OBJECT",
                     properties: {
+                        analysis: {
+                            type: "OBJECT",
+                            properties: {
+                                availableHours: { type: "INTEGER" },
+                                minimumHours: { type: "INTEGER" },
+                                recommendedHours: { type: "INTEGER" },
+                                masteryHours: { type: "INTEGER" },
+                                feasibility: { type: "STRING" },
+                                constraints: { type: "STRING" },
+                                recommendations: { type: "STRING" }
+                            },
+                            required: ["availableHours", "minimumHours", "recommendedHours", "masteryHours", "feasibility", "constraints", "recommendations"]
+                        },
                         plans: {
                             type: "ARRAY",
                             items: {
@@ -78,6 +138,7 @@ export async function generateMissionPlans(
                                     estimatedHours: { type: "INTEGER" },
                                     difficulty: { type: "STRING" },
                                     successProbability: { type: "INTEGER" },
+                                    probabilityExplanation: { type: "STRING" },
                                     commitment: { type: "STRING" },
                                     risks: { type: "ARRAY", items: { type: "STRING" } },
                                     milestones: {
@@ -94,11 +155,11 @@ export async function generateMissionPlans(
                                         }
                                     }
                                 },
-                                required: ["name", "estimatedHours", "difficulty", "successProbability", "commitment", "risks", "milestones"]
+                                required: ["name", "estimatedHours", "difficulty", "successProbability", "probabilityExplanation", "commitment", "risks", "milestones"]
                             }
                         }
                     },
-                    required: ["plans"]
+                    required: ["analysis", "plans"]
                 } as any,
             },
         });

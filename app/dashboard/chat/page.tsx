@@ -8,8 +8,10 @@ export default async function ChatPage() {
     const user = await getOrCreateUser();
     if (!user) redirect("/sign-in");
 
-    const networkData = await getNetworkData();
-    const groupsResponse = await getGroups();
+    const [networkData, groupsResponse] = await Promise.all([
+        getNetworkData(),
+        getGroups()
+    ]);
 
     return (
         <ChatClient 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { generateMissionPlans, suggestMilestoneSplit, approveMission, MissionPlan, MilestonePlan } from "@/app/actions/mission";
+import { generateMissionPlans, suggestMilestoneSplit, approveMission, MissionPlan, MilestonePlan, MissionAnalysis } from "@/app/actions/mission";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +78,7 @@ export function MissionPlanner() {
 
     // Step 2 & 3 Data
     const [generatedPlans, setGeneratedPlans] = useState<MissionPlan[]>([]);
+    const [missionAnalysis, setMissionAnalysis] = useState<MissionAnalysis | null>(null);
     const [selectedPlanIndex, setSelectedPlanIndex] = useState<number>(0);
     const [activeMilestones, setActiveMilestones] = useState<MilestonePlan[]>([]);
 
@@ -107,6 +108,7 @@ export function MissionPlanner() {
                 milestones: p.milestones.map((m, i) => ({ ...m, id: `ms-${Date.now()}-${i}` }))
             }));
 
+            setMissionAnalysis(data.analysis);
             setGeneratedPlans(plansWithIds);
             setStep(2);
         } catch (error) {
@@ -200,43 +202,91 @@ export function MissionPlanner() {
 
     if (step === 2) {
         return (
-            <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                <div className="text-center space-y-2">
+            <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                {missionAnalysis && (
+                    <Card className="border-primary/20 bg-primary/5">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5 text-primary" /> Mission Analysis</CardTitle>
+                            <CardDescription>Based on your {missionAnalysis.availableHours} available hours.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-6 text-sm">
+                            <div className="space-y-3">
+                                <div>
+                                    <h4 className="font-semibold text-foreground">Feasibility Analysis</h4>
+                                    <p className="text-muted-foreground">{missionAnalysis.feasibility}</p>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-foreground">Major Constraints</h4>
+                                    <p className="text-muted-foreground">{missionAnalysis.constraints}</p>
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <div>
+                                    <h4 className="font-semibold text-foreground">Strategic Recommendations</h4>
+                                    <p className="text-muted-foreground">{missionAnalysis.recommendations}</p>
+                                </div>
+                                <div className="flex gap-4 mt-2 pt-2 border-t border-primary/10">
+                                    <div className="flex-1 bg-background p-2 rounded-md border text-center">
+                                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider block">Minimum</span>
+                                        <span className="font-bold">{missionAnalysis.minimumHours}h</span>
+                                    </div>
+                                    <div className="flex-1 bg-background p-2 rounded-md border border-primary/30 text-center">
+                                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider block">Recommended</span>
+                                        <span className="font-bold text-primary">{missionAnalysis.recommendedHours}h</span>
+                                    </div>
+                                    <div className="flex-1 bg-background p-2 rounded-md border text-center">
+                                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider block">Mastery</span>
+                                        <span className="font-bold text-purple-500">{missionAnalysis.masteryHours}h</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="text-center space-y-2 mt-8">
                     <h2 className="text-3xl font-bold">Select Mission Blueprint</h2>
-                    <p className="text-muted-foreground">The AI has generated 3 distinct execution paths based on your parameters.</p>
+                    <p className="text-muted-foreground">The AI has generated 3 distinct execution paths.</p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                     {generatedPlans.map((plan, idx) => (
-                        <Card key={idx} className="flex flex-col border-2 hover:border-primary cursor-pointer transition-all hover:-translate-y-1" onClick={() => handleSelectPlan(idx)}>
-                            <CardHeader className="text-center">
+                        <Card key={idx} className="flex flex-col h-full border-2 hover:border-primary transition-all">
+                            <CardHeader className="text-center pb-2">
                                 <CardTitle className="text-xl text-primary">{plan.name}</CardTitle>
                                 <CardDescription>Estimated {plan.estimatedHours} Hours</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex-1 space-y-4">
-                                <div className="space-y-2">
+                            <CardContent className="flex-1 flex flex-col space-y-4">
+                                <div className="space-y-3">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Difficulty:</span>
                                         <span className="font-semibold">{plan.difficulty}</span>
                                     </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Success Rate:</span>
-                                        <span className="font-semibold text-green-500">{plan.successProbability}%</span>
+                                    <div className="flex flex-col text-sm space-y-1">
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Success Rate:</span>
+                                            <span className="font-semibold text-green-500">{plan.successProbability}%</span>
+                                        </div>
+                                        {plan.probabilityExplanation && (
+                                            <span className="text-xs text-muted-foreground italic leading-tight">{plan.probabilityExplanation}</span>
+                                        )}
                                     </div>
-                                    <div className="flex justify-between text-sm">
+                                    <div className="flex flex-col text-sm space-y-1 pt-3 border-t">
                                         <span className="text-muted-foreground">Commitment:</span>
-                                        <span className="font-semibold">{plan.commitment}</span>
+                                        <span className="font-semibold whitespace-normal break-words leading-tight text-[13px]">{plan.commitment}</span>
                                     </div>
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-2 pt-3 border-t flex-1 flex flex-col">
                                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">Milestones ({plan.milestones.length})</h4>
-                                    <ul className="text-sm space-y-1 text-muted-foreground list-disc pl-4 line-clamp-4">
-                                        {plan.milestones.map((m, i) => <li key={i}>{m.title}</li>)}
-                                    </ul>
+                                    <div className="flex-1 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                                        <ul className="text-[13px] space-y-2 text-muted-foreground list-disc pl-4">
+                                            {plan.milestones.map((m, i) => <li key={i} className="whitespace-normal break-words leading-snug">{m.title}</li>)}
+                                        </ul>
+                                    </div>
                                 </div>
                             </CardContent>
-                            <CardFooter>
-                                <Button className="w-full" variant="secondary">Select {plan.name}</Button>
+                            <CardFooter className="mt-auto pt-4">
+                                <Button className="w-full" variant={idx === 1 ? "default" : "secondary"} onClick={() => handleSelectPlan(idx)}>Select {plan.name}</Button>
                             </CardFooter>
                         </Card>
                     ))}

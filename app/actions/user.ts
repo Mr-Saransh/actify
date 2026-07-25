@@ -1,26 +1,35 @@
 "use server";
 
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
 
 export async function getOrCreateUser(): Promise<User | null> {
-    const clerkUser = await currentUser();
+    const { userId } = await auth();
 
-    if (!clerkUser) {
+    if (!userId) {
         return null;
     }
 
-    const email = clerkUser.emailAddresses[0]?.emailAddress;
+    // Fast path: find user in DB with just the local token ID
+    let user = await prisma.user.findUnique({
+        where: { clerkId: userId },
+    });
 
+    if (user) {
+        return user;
+    }
+
+    // Slow path: fetch from Clerk API to get email/image for creation
+    const clerkUser = await currentUser();
+    if (!clerkUser) return null;
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
     if (!email) throw new Error("User has no email address");
 
-    const user = await prisma.user.upsert({
-        where: { clerkId: clerkUser.id },
-        update: {
-            image: clerkUser.imageUrl, // Automatically syncs image on login
-        },
-        create: {
+    // Create user since they don't exist
+    user = await prisma.user.create({
+        data: {
             clerkId: clerkUser.id,
             email: email,
             image: clerkUser.imageUrl,

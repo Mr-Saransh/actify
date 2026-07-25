@@ -12,27 +12,31 @@ export default async function DashboardOverviewPage() {
         return <div className="flex items-center justify-center h-full text-muted-foreground">Authenticating...</div>;
     }
 
-    // Fetch active goal
-    const activeGoal = await prisma.goal.findFirst({
-        where: { userId: user.id, status: "ACTIVE" },
-        include: {
-            tasks: {
-                orderBy: { dayIndex: 'asc' },
-                include: { proof: true }
-            }
-        },
-    });
-
-    // Fetch all user goals for stats
-    const allGoals = await prisma.goal.findMany({
-        where: { userId: user.id },
-        include: {
-            tasks: {
-                orderBy: { updatedAt: 'desc' },
-                include: { proof: true }
-            }
-        },
-    });
+    // Fetch active goal and all goals in parallel
+    const [activeGoal, allGoals, usersWithMorePoints] = await Promise.all([
+        prisma.goal.findFirst({
+            where: { userId: user.id, status: "ACTIVE" },
+            include: {
+                tasks: {
+                    orderBy: { dayIndex: 'asc' },
+                    include: { proof: true }
+                }
+            },
+        }),
+        prisma.goal.findMany({
+            where: { userId: user.id },
+            include: {
+                tasks: {
+                    orderBy: { updatedAt: 'desc' },
+                    include: { proof: true }
+                }
+            },
+        }),
+        prisma.user.count({
+            where: { actPoints: { gt: user.actPoints } }
+        })
+    ]);
+    const rank = usersWithMorePoints + 1;
 
     // Calculate stats
     const totalTasks = allGoals.reduce((sum, g) => sum + g.tasks.length, 0);
@@ -114,11 +118,6 @@ export default async function DashboardOverviewPage() {
             date: new Date(t.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             points: t.state === 'ACCEPTED' ? 5 : 0,
         }));
-
-    // Leaderboard rank
-    const rank = await prisma.user.count({
-        where: { actPoints: { gt: user.actPoints } }
-    }) + 1;
 
     return (
         <DashboardClient

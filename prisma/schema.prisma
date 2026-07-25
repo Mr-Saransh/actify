@@ -197,6 +197,18 @@ model Message {
   senderId   String
   receiverId String
   content    String
+  
+  // Execution Chat Features
+  type       String   @default("TEXT") // TEXT, IMAGE, FILE, CODE, RESOURCE, TEMPLATE
+  metadata   Json?    // Stores file URLs, resource details, or markdown data
+  isPinned   Boolean  @default(false)
+  deletedAt  DateTime?
+  editedAt   DateTime?
+  reactions  Json?    // Array of { emoji, userId }
+  replyToId  String?
+  readBy     String[] // Array of user IDs who have seen it
+  deliveredTo String[] // Array of user IDs it was delivered to
+  
   createdAt  DateTime @default(now())
   
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
@@ -255,14 +267,17 @@ model Review {
 }
 
 model Group {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  imageUrl    String?
-  createdAt   DateTime @default(now())
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  imageUrl      String?
+  missionStatus String   @default("ACTIVE")
+  settings      Json?
+  createdAt     DateTime @default(now())
   
-  members     GroupMember[]
-  messages    GroupMessage[]
+  members       GroupMember[]
+  messages      GroupMessage[]
+  sharedResources SharedResource[]
 }
 
 model GroupMember {
@@ -279,12 +294,38 @@ model GroupMember {
 }
 
 model GroupMessage {
-  id        String   @id @default(uuid())
-  groupId   String
-  senderId  String
-  content   String
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  groupId    String
+  senderId   String
+  content    String
+  
+  // Execution Chat Features
+  type       String   @default("TEXT") // TEXT, IMAGE, FILE, CODE, RESOURCE, TEMPLATE
+  metadata   Json?    
+  isPinned   Boolean  @default(false)
+  deletedAt  DateTime?
+  editedAt   DateTime?
+  reactions  Json?    
+  replyToId  String?
+  readBy     String[] 
+  deliveredTo String[] 
+  
+  createdAt  DateTime @default(now())
 
   group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   sender    User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model SharedResource {
+  id            String   @id @default(uuid())
+  title         String
+  url           String?
+  type          String   // GITHUB, TEMPLATE, JOURNEY, DOCUMENT, LINK
+  groupId       String?
+  groupMessageId String?
+  saves         Int      @default(0)
+  helpfulRating Int      @default(0)
+  createdAt     DateTime @default(now())
+  
+  group         Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 }
